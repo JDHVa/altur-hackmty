@@ -1,0 +1,14 @@
+# Datasets externos descargados por download_datasets.py
+datasets_externos/
+
+# Datos del reto (no redistribuir)
+hackmty26/audio/
+*.zip
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+.DS_Store

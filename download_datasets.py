@@ -32,7 +32,7 @@ def extract_file(file_path, extract_to):
         print(f"Error extrayendo {file_path.name}: {e}")
 
 def main():
-    base_dir = Path("C:/Users/jesus/Proyectos/Altur/datasets_externos")
+    base_dir = Path(__file__).resolve().parent / "datasets_externos"
     base_dir.mkdir(parents=True, exist_ok=True)
     
     # URLs de los datasets
