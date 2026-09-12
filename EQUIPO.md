@@ -1,0 +1,86 @@
+# EQUIPO — Asignación de tareas por persona
+
+> Complementa [`PLAN.md`](PLAN.md). Tres caminos **independientes** unidos por contratos de
+> interfaz. Cada quien programa contra un *stub* de los demás y no se bloquea.
+
+## Contratos de interfaz (acordar en la HORA 1, todos juntos)
+
+- **B → todos:** `src/features/audio.py` con
+  `audio_score(caller_wave: np.ndarray, sr: int) -> float` (prob. sintético 0–1) y
+  `audio_features(caller_wave, sr) -> dict`. Cache `.npy` + export **ONNX**.
+- **A → todos:** `src/ensemble.py` + endpoint `POST /detect`. Consume B (y C) como caja negra.
+- **C → consume:** ONNX de B + `models/tabular.joblib` de A + endpoint de A.
+- **Común:** `anon_id`, canal 0 = caller, canal 1 = agente. Stub de audio = `0.5` mientras B no exporte.
+
+---
+
+## 👤 Persona 1 — JESÚS · Camino A (Conversacional + Semántico + Ensemble + API)
+**Máquina:** i7-1255U, 16 GB, sin CUDA (CPU). **Dueño del entregable que puntúa.**
+
+| # | Tarea | Entregable |
+|---|---|---|
+| A0 | Setup repo + `requirements.txt` + EDA | `notebooks/01_eda.ipynb`: qué features separan clases; **GroupKFold por hablante**; métricas EER/AUC/Brier |
+| A1 | **Backbone tabular** (45 features → XGBoost regularizado) | `src/features/conversational.py`, `src/train_tabular.py`, `models/tabular.joblib`. **Test de paridad** feature online vs CSV |
+| A2 | Señal C — semántico zero-shot | `src/features/semantic.py`: `faster-whisper` + prompt LLM → `{ai_suspicion, reasons}` + variabilidad de sentimiento |
+| A3 | **Ensemble + calibración** | `src/ensemble.py`: stacking/logística sobre [A,B,C] + calibración; fallback promedio ponderado. Evaluar `val` **una vez** |
+| A4 | **API `POST /detect`** | `src/api/main.py` + `Dockerfile`: base64→canal0/1→features→ensemble→umbral por **EER**. CPU < 5 s. Test sobre 71 de `val` |
+| A5 | Sponsors (bonus, aislado) | `src/sponsors/`: Gemini (señal C) y Vultr (hosting) primero; Snowflake/TigerGraph solo si sobra |
+
+**Prioridad:** A0→A1→A4 (con stub B=0.5) ya es un entregable defendible. Luego A2→A3.
+
+---
+
+## 👤 Persona 2 — EMILIO · Camino B (Audio Anti-spoofing)
+**Máquina:** RTX 4050 6 GB. **Dueño de la señal de audio SOTA.**
+
+| # | Tarea | Entregable |
+|---|---|---|
+| B0 | **Score zero-shot inmediato** (modelo HF pre-entrenado) | `audio_score` sobre canal 0 de todo el dataset **sin entrenar** → cumple contrato desde el día 1 |
+| B1 | Features SSL frozen + prosodia | `src/features/audio.py`: Wav2Vec2-XLS-R/WavLM frozen + `librosa`/`parselmouth` (F0, jitter, shimmer, RMS, respiración). Resample 8→16 kHz. Cache `.npy` |
+| B2 | **Cabeza anti-spoofing** (entrenar solo la cabeza en RTX 4050) | `notebooks/03_audio_model.ipynb`: AASIST/MLP sobre SSL frozen + augmentation es-MX→teléfono→8 kHz. Corridas pesadas → RTX 5050 (Persona 3) |
+| B3 | **Export ONNX INT8** | modelo en `models/`; `audio_score`/`audio_features` estables para A y C |
+
+**Prioridad:** B0 el primer día (número real para el ensemble). Luego B1→B2→B3.
+**Coordina** con Persona 3 el uso de la RTX 5050 para fine-tune/LoRA/pre-train.
+
+---
+
+## 👤 Persona 3 — Camino C (Hardware "Centinela Altur") + GPU Worker
+**Máquina:** RTX 5050 8 GB, 24 GB RAM. **Dueña del dispositivo físico y de las corridas pesadas.**
+
+### Rol GPU worker (arranca aquí, mientras B madura)
+- Lanzar y monitorear en la RTX 5050: **fine-tune completo / LoRA**, **augmentation** (TTS→teléfono→8 kHz),
+  **pre-train** con datasets externos (ASVspoof/WaveFake), **batch inference** de los 353 audios.
+- Guardar datasets externos grandes aquí (disco/VRAM), entregar checkpoints a Persona 2.
+
+### Rol hardware — Centinela Altur (Raspberry Pi 5 4 GB)
+Dispositivo de banca antifraude que **delata voz sintética en vivo**. Corre el **mismo pipeline** (paridad con `/detect`).
+
+| # | Tarea | Entregable |
+|---|---|---|
+| C0 | Preparar Pi 5 contra **stub** | SO + ONNX runtime `arm64` + mic/VAD (`webrtcvad`) + salida (LED/pantalla). Todo con score stub 0.5 |
+| C1 | **Modo Reto Adversarial** | La Pi hace de agente: pregunta trampa por bocina → escucha → mide **latencia en vivo** → veredicto |
+| C2 | Visualización | Anillo LED verde↔rojo, medidor de "humanidad", espectrograma en vivo, desglose 3 señales, TTS (`piper`) del veredicto |
+| C3 | Integrar modelo real | Enchufar ONNX de B + tabular de A. Fallback **modo offload** (Pi = captura+UI, modelo pesado en RTX 5050 por HTTP) |
+| C4 | Add-ons (si sobra) | "Teléfono trucado", botón espejo `/detect` (borde vs nube), contador de fraudes |
+
+**Componentes:** Pi 5 4 GB, ReSpeaker/mic USB, microSD A2, pantalla (LCD/HDMI), anillo LED, bocina, disipador + ventilador.
+**Framing:** el hardware es **bonus** — no debe robar tiempo al endpoint que puntúa. Empezar el hardware
+en firme cuando B1–B3 estén estables.
+
+---
+
+## Ruta crítica (qué desbloquea qué)
+
+```
+Hora 1 (todos): setup + EDA + contratos + stubs
+   │
+   ├─ A: A1 baseline ──► A4 API (stub B=0.5) ──► A2 ──► A3 ensemble ──► eval val
+   ├─ B: B0 zero-shot ──► B1 ──► B2 (usa RTX 5050 de P3) ──► B3 ONNX ──┐
+   └─ C: GPU worker (corre B2/pesados) + C0 prep Pi (stub) ───────────┘
+                                                                       ▼
+                                          MERGE: B→ensemble de A · C integra ONNX+tabular
+```
+
+**Regla de oro:** el endpoint `POST /detect` con **solo la señal A** ya es entregable válido.
+Todo lo demás (audio, semántico, hardware, sponsors) suma pero **nunca bloquea** ese mínimo.

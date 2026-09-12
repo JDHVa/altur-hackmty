@@ -70,15 +70,43 @@ canal 0 = caller, canal 1 = agent) y responde:
 `is_synthetic` es obligatorio; `confidence` es opcional (rompe empates y premia
 calibración).
 
-## Ideas de enfoque
+## Plan y arquitectura (DECIDIDO) — leer `PLAN.md` y `EQUIPO.md`
 
-1. **Baseline tabular** con `dataset_turns_features.csv` (las señales
-   conversacionales — latencias, solapamientos, silencios — ya distinguen bien
-   humano vs IA). Rápido de montar.
-2. **Modelo de audio** sobre el canal 0: mel-espectrograma / wav2vec2 y un
-   clasificador; combinar con las features conversacionales.
-3. El canal 1 (agente) da contexto: a qué reaccionaba el caller (pausas,
-   interrupciones, preguntas trampa).
+El roadmap oficial está en **[`PLAN.md`](PLAN.md)** y la asignación por persona en
+**[`EQUIPO.md`](EQUIPO.md)**. Resumen de decisiones para agentes:
+
+- **Ensemble de 3 señales**, calibrado (Platt/isotónica) para `confidence`:
+  - **A. Conversacional** — 45 features de `dataset_turns_features.csv` → **XGBoost** (backbone).
+  - **B. Audio anti-spoofing** — **Wav2Vec2-AASIST** con SSL **frozen** + prosodia sobre canal 0
+    (SOTA 2025; frozen evita sobreajuste a hablantes). Modelos HF listos para score zero-shot.
+  - **C. Semántico** — transcripción (`faster-whisper`) + LLM zero-shot (cadencia robótica,
+    prompt leakage, reacción a preguntas trampa del agente).
+- **Fuera del clasificador:** voiceprints ECAPA-TDNN (codifican identidad → overfit a voces vistas)
+  y FHE (verificación con enrolamiento, que este reto no tiene). FHE = demo opcional.
+- **Infra híbrida:** core local que siempre funciona + sponsors oportunistas (Gemini/Vultr;
+  Snowflake/TigerGraph solo bonus). Hay **2 GPUs locales** → la GPU de Vultr no hace falta.
+- **Regla de oro:** el endpoint `POST /detect` con **solo la señal A** ya es entregable válido;
+  todo lo demás suma pero **nunca bloquea** ese mínimo.
+- **3 caminos paralelos** (Persona 1 = A/API en CPU, Persona 2 = B/audio en RTX 4050,
+  Persona 3 = hardware "Centinela Altur" Pi 5 + GPU worker en RTX 5050). Contratos de interfaz en `EQUIPO.md`.
+
+## Flujo de trabajo Git / colaboración (OBLIGATORIO)
+
+Somos **3 personas trabajando en paralelo**. Para no chocar y poder testear juntos:
+
+- **Cambios chicos e incrementales.** Nada de PRs/commits gigantes. Cada tarea se parte en
+  pasos pequeños y **testeables por separado**. Si un cambio toca muchos archivos a la vez, pararse
+  y dividirlo.
+- **`git pull` ANTES de empezar cualquier cambio** (y otra vez antes de commitear) para integrar lo
+  de los demás y evitar conflictos grandes.
+- **`git push` en cuanto haya un cambio considerable** que compile/pase pruebas — no acumular trabajo local.
+  Regla práctica: si llevas más de ~30–60 min sin pushear algo funcional, es señal de que el cambio es muy grande.
+- **Cada commit debe dejar el repo en estado funcional** (que corra / pase el test mínimo). No commitear código roto a `main`.
+- Mensajes de commit claros y por camino, p.ej. `A: baseline tabular`, `B: score audio zero-shot`, `C: captura Pi`.
+- Respetar los **contratos de interfaz** de `EQUIPO.md` para que los 3 caminos integren sin fricción.
+
+> Para agentes (Claude/Gemini): **haz `git pull` antes de editar y `git push` tras cada cambio
+> considerable y funcional.** Mantén los diffs pequeños; nunca dejes cambios grandes sin pushear.
 
 ## Términos
 
