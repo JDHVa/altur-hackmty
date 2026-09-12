@@ -1,9 +1,17 @@
 import os
+import io
+import sys
 import asyncio
-import edge_tts
-import torchaudio
+import subprocess
 
-# Frases típicas de atención al cliente bancario (semejante a los audios reales de Altur)
+import numpy as np
+import soundfile as sf
+import edge_tts
+import imageio_ffmpeg
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from src.features.telephony_aug import augment_chain
+
 PHRASES = [
     "Hola, me gustaría consultar el saldo de mi tarjeta de crédito.",
     "No reconozco un cargo de quinientos pesos en mi estado de cuenta.",
@@ -14,46 +22,46 @@ PHRASES = [
     "Sí, confirmo que yo realicé esa compra ayer en la noche.",
     "¿Me puede comunicar con un ejecutivo por favor?",
     "Olvidé el NIP del cajero, ¿cómo lo recupero?",
-    "Quisiera saber el estatus de mi aclaración."
+    "Quisiera saber el estatus de mi aclaración.",
 ]
 
-# Voces en Español Mexicano de Microsoft Edge Neural
 VOICES = ["es-MX-JorgeNeural", "es-MX-DaliaNeural"]
-
-# Carpeta de salida (el script la creará automáticamente)
 OUTPUT_DIR = "datasets_externos/Synthetic_MX_8kHz"
+CODEC = "g711_ulaw"
+FFMPEG = imageio_ffmpeg.get_ffmpeg_exe()
+
+
+def mp3_to_array(mp3_bytes):
+    p = subprocess.run([FFMPEG, "-hide_banner", "-loglevel", "error", "-i", "pipe:0",
+                        "-ac", "1", "-ar", "16000", "-f", "wav", "pipe:1"],
+                       input=mp3_bytes, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if p.returncode != 0:
+        raise RuntimeError(p.stderr.decode("utf-8", "ignore")[:200])
+    wave, sr = sf.read(io.BytesIO(p.stdout))
+    return wave.astype(np.float32), sr
+
 
 async def generate_audio():
     os.makedirs(OUTPUT_DIR, exist_ok=True)
-    print("=== Iniciando generación de audios sintéticos (Edge-TTS) ===")
-    
+    print("=== Generando sinteticos es-MX (Edge-TTS) con canal identico a los humanos ===")
     count = 0
     for voice in VOICES:
         for i, text in enumerate(PHRASES):
-            temp_file = f"{OUTPUT_DIR}/temp_{voice}_{i}.wav"
-            final_file = f"{OUTPUT_DIR}/synth_{voice}_{i}.wav"
-            
-            print(f"Generando: {voice} -> '{text[:30]}...'")
             communicate = edge_tts.Communicate(text, voice)
-            await communicate.save(temp_file)
-            
-            # Resample a 8kHz para simular teléfono (Condiciones del Altur Challenge)
-            waveform, sr = torchaudio.load(temp_file)
-            if sr != 8000:
-                resampler = torchaudio.transforms.Resample(orig_freq=sr, new_freq=8000)
-                waveform = resampler(waveform)
-            
-            # Guardar el audio final a 8kHz PCM 16-bit
-            torchaudio.save(final_file, waveform, 8000, encoding="PCM_S", bits_per_sample=16)
-            
-            # Limpiar archivo original temporal
-            os.remove(temp_file)
+            mp3 = b""
+            async for chunk in communicate.stream():
+                if chunk["type"] == "audio":
+                    mp3 += chunk["data"]
+            wave, sr = mp3_to_array(mp3)
+            proc, out_sr = augment_chain(wave, sr, codec=CODEC)
+            final_file = os.path.join(OUTPUT_DIR, f"synth_{voice}_{i:02d}.wav")
+            sf.write(final_file, proc, out_sr, subtype="PCM_16")
             count += 1
-            print(f" [OK] Guardado: {final_file}")
-            
-    print(f"\n¡Éxito! Total de audios generados a 8kHz: {count}")
+            print(f" [OK] {final_file}  ({out_sr} Hz, {len(proc)/out_sr:.1f}s)")
+    print(f"\nTotal sinteticos 8kHz (canal {CODEC}): {count}")
 
-if __name__ == '__main__':
-    if os.name == 'nt':
+
+if __name__ == "__main__":
+    if os.name == "nt":
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     asyncio.run(generate_audio())
