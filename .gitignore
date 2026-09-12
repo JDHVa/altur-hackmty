@@ -40,3 +40,13 @@ models/piper/
 
 *credentials.env
 .env
+
+# venv aislado para clonacion de voz (XTTS)
+.venv_tts/
+*.mp3
+
+# audio personal / temporal en root (grabaciones, referencias, clones) - NO subir
+*.m4a
+/ref_*.wav
+/voz_clonada*.wav
+/*_clon*.wav
