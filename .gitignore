@@ -1,5 +1,8 @@
 # Datasets externos descargados por download_datasets.py
-datasets_externos/
+datasets_externos/*
+!datasets_externos/Human_MX_8kHz/
+datasets_externos/Human_MX_8kHz/*
+!datasets_externos/Human_MX_8kHz/human_emilio_*.wav
 
 # WAV temporales de pruebas locales
 _tmp_wav/

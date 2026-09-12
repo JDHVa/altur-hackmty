@@ -10,7 +10,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 from features.audio import audio_score
 
 HUMAN_DIRS = ['datasets_externos/Human_MX_8kHz', 'datasets_externos/Human_ES_8kHz']
-SYNTH_DIRS = ['datasets_externos/Synthetic_MX_8kHz']
+SYNTH_DIRS = ['datasets_externos/Synthetic_MX_8kHz', 'datasets_externos/Synthetic_Multi_8kHz']
 
 
 def load(f):
