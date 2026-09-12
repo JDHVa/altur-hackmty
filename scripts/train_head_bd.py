@@ -115,10 +115,13 @@ def main():
     Xs_gtts = np.stack([np.load(os.path.join(EXT_CACHE, 'smulti__' + os.path.basename(f) + '.npy')) for f in gtts_files])
     Xs_edge_multi = np.stack([np.load(os.path.join(EXT_CACHE, 'smulti__' + os.path.basename(f) + '.npy')) for f in edge_multi_files])
     Xs_edge_mx = embed_dir(os.path.join(ROOT, 'datasets_externos', 'Synthetic_MX_8kHz'), 'smx')
+    Xs_piper = embed_dir(os.path.join(ROOT, 'datasets_externos', 'Synthetic_Piper_8kHz'), 'piper')
 
-    X_train = np.concatenate([Xa[tr], Xh_tr, Xs_edge_mx, Xs_edge_multi])
-    y_train = np.concatenate([ya[tr], np.zeros(len(Xh_tr)), np.ones(len(Xs_edge_mx)), np.ones(len(Xs_edge_multi))]).astype(int)
+    X_train = np.concatenate([Xa[tr], Xh_tr, Xs_edge_mx, Xs_edge_multi, Xs_gtts])
+    y_train = np.concatenate([ya[tr], np.zeros(len(Xh_tr)),
+                              np.ones(len(Xs_edge_mx)), np.ones(len(Xs_edge_multi)), np.ones(len(Xs_gtts))]).astype(int)
     print(f'TRAIN total={len(y_train)} (humanos={ (y_train==0).sum() } sinteticos={ (y_train==1).sum() })')
+    print('  motores en train: Edge + gTTS | held-out test: Piper (neural, no visto)')
 
     sc = StandardScaler().fit(X_train)
     base = LogisticRegression(max_iter=3000, C=0.1, class_weight='balanced')
@@ -128,14 +131,14 @@ def main():
     def P(X):
         return clf.predict_proba(sc.transform(X))[:, 1]
 
-    print('\n=== EVAL ===')
+    print('\n=== EVAL (held-out) ===')
     report('Altur val (no-regresion)', ya[va], P(Xa[va]))
-    yh = np.concatenate([np.zeros(len(Xh_te)), np.zeros(len(Xh_emilio)), np.ones(len(Xs_gtts))])
-    sh = np.concatenate([P(Xh_te), P(Xh_emilio), P(Xs_gtts)])
-    report('CROSS humanos+gTTS', yh, sh)
+    yh = np.concatenate([np.zeros(len(Xh_te)), np.zeros(len(Xh_emilio)), np.ones(len(Xs_piper))])
+    sh = np.concatenate([P(Xh_te), P(Xh_emilio), P(Xs_piper)])
+    report('CROSS humanos+Piper', yh, sh)
     report('  FLEURS-test humanos', np.zeros(len(Xh_te)), P(Xh_te))
     report('  emilio humanos', np.zeros(len(Xh_emilio)), P(Xh_emilio))
-    report('  gTTS (motor no visto)', np.ones(len(Xs_gtts)), P(Xs_gtts))
+    report('  Piper (motor neural no visto)', np.ones(len(Xs_piper)), P(Xs_piper))
 
     os.makedirs(os.path.dirname(args.out), exist_ok=True)
     joblib.dump({'scaler': sc, 'clf': clf, 'model_id': MODEL_ID, 'dim': X_train.shape[1]}, args.out)

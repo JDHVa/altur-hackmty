@@ -24,6 +24,7 @@ faster-whisper
 edge-tts                # TTS es-MX para dataset sintetico (plan v4 B-C)
 gTTS                    # 2o motor TTS (Google) para variedad sintetica (plan v4 B-C)
 datasets                # descarga humanos es reales (FLEURS) (plan v4 B-C)
+piper-tts               # TTS neural es-MX held-out para test cross-motor (plan v4)
 
 # --- API POST /detect ---
 fastapi
