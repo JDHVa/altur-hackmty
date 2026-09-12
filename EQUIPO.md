@@ -23,7 +23,7 @@ Estado: ✅ hecho · 🟡 en progreso/parcial · ⬜ pendiente
 |---|---|---|---|
 | 🟡 | A0 | Setup + EDA | Hecho: `requirements.txt`, robustez de features y métricas EER/AUC/Brier. Falta notebook formal `01_eda.ipynb` |
 | ✅ | A1 | **Backbone tabular** (45 features → LightGBM) | `src/features/conversational.py` (paridad EXACTA vs CSV), `src/training/train_tabular.py`, `lgbm_tabular.pkl`. VAL AUC 0.99 |
-| ⬜ | A2 | Señal C — semántico zero-shot | `src/features/semantic.py`: `faster-whisper` + LLM. **Bloqueado por decisión: Gemini (API key) vs LLM local** |
+| 🟡 | A2 | Señal C — semántico zero-shot | `src/features/semantic.py`: transcripción `faster-whisper` (es, probada) + LLM local vía **Ollama**. Falta evaluar en val e integrar. **Setup:** `winget install Ollama.Ollama` + `ollama pull qwen2.5:3b`, luego `OLLAMA_MODEL=qwen2.5:3b` |
 | ✅ | A3 | **Ensemble + calibración** | `src/ensemble.py`: calibración isotónica OOF + umbral por EER; pipeline VAD-consistente. Fusión A+B se activa sola cuando B dé scores |
 | ✅ | A4 | **API `POST /detect`** | `api/main.py` + `api/inference.py` + `Dockerfile`. Probado HTTP end-to-end en val: acc 0.93, confianza calibrada |
 | ⬜ | A5 | Sponsors (bonus, aislado) | `src/sponsors/`: Gemini y Vultr primero; Snowflake/TigerGraph solo si sobra |
