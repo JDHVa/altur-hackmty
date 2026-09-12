@@ -28,7 +28,7 @@ generaliza a motores TTS nuevos (el riesgo del set oculto) donde WavLM/flow fall
 - **Flow-LLR** (`src/models/flow_llr.py` + `flow_llr.joblib`): normalizing flows (zuko) por clase → LLR.
   Reentrenar: `scripts/train_flow_llr.py`.
 - **Probabilísticos** (`scripts/train_probabilistic.py` → `prob_*.joblib`): QDA/LDA/NB/GMM/Bayes-LogReg
-  sobre las 42 features conductuales (ver `investigacion_modelos_probabilisticos.md`).
+  sobre las 42 features conductuales (ver `docs/investigacion/investigacion_modelos_probabilisticos.md`).
 - **Diarización pyannote** (`src/features/diarization.py`, opt-in): mejora los turnos (señal más fuerte).
   Requiere `pip install pyannote.audio` + aceptar términos + `HF_TOKEN`. `available()` degrada a falso sin token.
 

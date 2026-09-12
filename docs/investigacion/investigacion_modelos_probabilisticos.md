@@ -78,7 +78,7 @@ p_synth = m['model'].predict_proba(X.values)[0, 1]         # prob calibrada de s
 
 `val` es speaker-disjoint pero **mismo dominio de captura** que `train`. La firma de latencia es
 conductual y debería sostenerse en el set oculto, pero conviene no fijar el umbral solo con `val`
-(ver calibración cross-corpus del audio en `plan_v4_deteccion.md`).
+(ver calibración cross-corpus del audio en `planes/plan_v4_deteccion.md`).
 
 ### Reproducir
 ```

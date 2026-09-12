@@ -9,7 +9,7 @@ import soundfile as sf
 import edge_tts
 import imageio_ffmpeg
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from src.features.telephony_aug import augment_chain
 
 PHRASES = [

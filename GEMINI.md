@@ -16,9 +16,16 @@ conversaciones reales de atención a clientes.
 
 ```
 Altur/
-├── CLAUDE.md                 ← este archivo
-├── GEMINI.md                 ← misma guía para Claude
-├── Reconocimiento de Voz Bancario.docx   ← enunciado / notas del reto
+├── CLAUDE.md                 ← guía para Claude Code
+├── GEMINI.md                 ← este archivo
+├── PLAN.md / EQUIPO.md       ← roadmap y asignación por persona
+├── planes/                   ← planes concretados y handoffs (plan_arquitectura_v3, plan_v4_deteccion, modelos_pesados_camino_b…)
+├── docs/reto/                ← PDF del challenge
+├── docs/investigacion/       ← investigaciones fuente (.docx) y notas
+├── scripts/                  ← utilidades: descarga de datasets, TTS sintético, entrenos, modal_app (GPU en Modal), analyze_audio
+├── src/                      ← features, modelos, ensemble
+├── api/                      ← FastAPI: POST /detect, /detect/detailed, WS /ws/call, /dataset/*
+├── web/                      ← Consola web "Centinela" (Next 16 + Tiger Data + Better Auth). Ver README.md
 └── hackmty26/                ← datos del reto (repo de la organización: alturio/hackmty26)
     ├── README.md             ← especificación oficial del challenge (LEER)
     ├── manifest.csv          ← 1 fila por llamada: anon_id, label, split, duration_s
@@ -125,7 +132,7 @@ marcador en el primer renglón, **trátalo como decidido: NO lo vuelvas a analiz
 ni proponer alternativas** — solo ejecútalo. Solo se analizan/discuten los planes que **no**
 tengan ese marcador.
 
-- **`plan_arquitectura_v3.md`** es el plan de arquitectura **DEFINITIVO** (Dual Ensemble A+B).
+- **`planes/plan_arquitectura_v3.md`** es el plan de arquitectura **DEFINITIVO** (Dual Ensemble A+B).
 - La carpeta **`planes_no_usados/`** contiene planes descartados/reemplazados: **IGNORARLA por completo** (no analizar, no ejecutar, no usar como referencia).
 
 ## Rol de Agentes (Gemini vs Claude)

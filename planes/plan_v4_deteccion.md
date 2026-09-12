@@ -58,7 +58,7 @@ Cada fase deja el repo funcional y es testeable por separado.
 ### Fase B-C — Dataset externo cross-corpus
 | Entregable | Criterio de aceptación |
 |---|---|
-| TTS es-MX nuevo vía `generate_synthetic_mx.py` (Edge-TTS) pasado por augmentation telefónica | ≥ 40 clips sintéticos 8 kHz etiquetados |
+| TTS es-MX nuevo vía `scripts/generate_synthetic_mx.py` (Edge-TTS) pasado por augmentation telefónica | ≥ 40 clips sintéticos 8 kHz etiquetados |
 | Humanos es reales (Common Voice es / grabaciones propias) pasados por augmentation | ≥ 40 clips humanos 8 kHz etiquetados |
 | `models/ssl_cache/…` extendido a este set externo | `.npz` externo con X, y, fuente |
 
@@ -91,7 +91,7 @@ Cada fase deja el repo funcional y es testeable por separado.
 
 - **Contrato B → A/C:** `audio_score(wave, sr)`, `audio_features(wave, sr)` (ver `EQUIPO.md`).
 - **RTX 5050 (Alonso):** corridas pesadas (reentrenos grandes, pre-train con ASVspoof/WaveFake).
-- **Datos externos:** `generate_synthetic_mx.py` (es-MX) + Common Voice es.
+- **Datos externos:** `scripts/generate_synthetic_mx.py` (es-MX) + Common Voice es.
 
 ## 6. Riesgos
 
@@ -138,5 +138,5 @@ Empezar por B-A: es barato, confirma la causa raíz y produce el módulo que hab
 ---
 
 ### Fuentes internas
-- `Detección de IA en Bancos.docx` — micro-prosodia, bispectro, AASIST/SSL, codec laundering, streaming, ASVspoof5.
-- `Fraude Bancario con Bots Vocales.docx` — arquitectura de bots, latencia de turnos, fracaso de ASV, GFW/subbandas, t-DCF.
+- `docs/investigacion/Detección de IA en Bancos.docx` — micro-prosodia, bispectro, AASIST/SSL, codec laundering, streaming, ASVspoof5.
+- `docs/investigacion/Fraude Bancario con Bots Vocales.docx` — arquitectura de bots, latencia de turnos, fracaso de ASV, GFW/subbandas, t-DCF.
