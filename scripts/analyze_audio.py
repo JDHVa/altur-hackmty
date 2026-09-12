@@ -67,11 +67,21 @@ def main():
     else:
         proc, psr = augment_chain(caller.astype(np.float32), sr, codec='g711_ulaw')
 
-    sig = {
-        'wavlm': float(audio_score(proc, psr)),
-        'xlsr': float(xlsr_sls_score(proc, psr)),
-        'flow': float(flow_llr_score(proc, psr)),
-    }
+    win = psr * 6
+    if proc.shape[0] <= win:
+        chunks = [proc]
+    else:
+        n = int(np.ceil(proc.shape[0] / win))
+        chunks = [proc[i * win:(i + 1) * win] for i in range(n)]
+        chunks = [c for c in chunks if c.shape[0] >= psr * 2]
+
+    per = []
+    for c in chunks:
+        s = {'wavlm': float(audio_score(c, psr)),
+             'xlsr': float(xlsr_sls_score(c, psr)),
+             'flow': float(flow_llr_score(c, psr))}
+        per.append(s)
+    sig = {k: float(np.mean([p[k] for p in per])) for k in ('wavlm', 'xlsr', 'flow')}
     final = combine(sig)
     bio = prosody_features(proc, psr)
 
