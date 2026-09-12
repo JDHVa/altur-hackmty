@@ -80,11 +80,37 @@ def decode_wav(audio_base64):
         raise InvalidAudioError('audio vacio tras decodificar base64')
     try:
         data, sr = sf.read(io.BytesIO(raw), always_2d=True, dtype='float32')
-    except Exception as exc:
-        raise InvalidAudioError(f'no se pudo leer el WAV: {str(exc)[:120]}')
+    except Exception:
+        try:
+            data, sr = _ffmpeg_decode(raw)
+        except Exception as exc:
+            raise InvalidAudioError(f'no se pudo leer el audio: {str(exc)[:120]}')
     if data.size == 0 or sr <= 0:
         raise InvalidAudioError('audio sin muestras o sample rate invalido')
     return data, sr
+
+
+def _ffmpeg_decode(raw):
+    import subprocess
+    import tempfile
+    import imageio_ffmpeg
+    ff = imageio_ffmpeg.get_ffmpeg_exe()
+    tmp = tempfile.NamedTemporaryFile(suffix='.bin', delete=False)
+    try:
+        tmp.write(raw)
+        tmp.close()
+        p = subprocess.run([ff, '-hide_banner', '-loglevel', 'error', '-i', tmp.name,
+                            '-ar', '16000', '-f', 'wav', 'pipe:1'],
+                           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if p.returncode != 0 or not p.stdout:
+            raise RuntimeError(p.stderr.decode('utf-8', 'ignore')[:160])
+        data, sr = sf.read(io.BytesIO(p.stdout), always_2d=True, dtype='float32')
+        return data, sr
+    finally:
+        try:
+            os.remove(tmp.name)
+        except Exception:
+            pass
 
 
 VERIFY_FLOOR = 0.35
@@ -202,6 +228,42 @@ def predict_detailed(data, sr):
         'recommendation': recommend(final, thr),
     }
     return out
+
+
+AUDIO_THR = float(os.environ.get('ALTUR_AUDIO_THR', '0.30'))
+
+
+def audio_recommend(p):
+    if p >= 0.5:
+        return 'hangup'
+    if p >= AUDIO_THR:
+        return 'verify'
+    return 'continue'
+
+
+def audio_only_detailed(data, sr):
+    caller = data[:, 0]
+    agent = data[:, 1] if data.shape[1] > 1 else np.zeros_like(caller)
+    duration_s = len(caller) / sr if sr else 0.0
+    signals = audio_signals(caller, sr)
+    p_audio = combine_audio(signals)
+    turns = turns_from_audio(caller, agent, sr)
+    is_synth = bool(p_audio >= AUDIO_THR)
+    confidence = p_audio if is_synth else 1 - p_audio
+    return {
+        'is_synthetic': is_synth,
+        'confidence': round(float(confidence), 4),
+        'p_final': round(float(p_audio), 4),
+        'p_audio': round(float(p_audio), 4),
+        'signals': {k: round(v, 4) for k, v in signals.items()},
+        'threshold': AUDIO_THR,
+        'mode': 'audio_only',
+        'duration_s': round(duration_s, 2),
+        'n_turns': len(turns),
+        'turns': [{'channel': int(t['channel']), 'start': round(float(t['start']), 2), 'end': round(float(t['end']), 2)} for t in turns[:400]],
+        'bio': bio_features(caller, sr),
+        'recommendation': audio_recommend(p_audio),
+    }
 
 
 def predict(audio_base64):

@@ -5,7 +5,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
-from api.inference import predict, predict_detailed, decode_wav, warmup, heavy_available, InvalidAudioError
+from api.inference import predict, predict_detailed, audio_only_detailed, decode_wav, warmup, heavy_available, InvalidAudioError
 from api.dataset import router as dataset_router
 from api.live import router as live_router
 
@@ -63,6 +63,18 @@ def detect_detailed(payload: DetectRequest):
         raise HTTPException(status_code=400, detail=str(exc))
     except Exception:
         logger.exception("error interno en /detect/detailed")
+        raise HTTPException(status_code=500, detail="error interno procesando el audio")
+
+
+@app.post("/detect/audio")
+def detect_audio(payload: DetectRequest):
+    try:
+        data, sr = decode_wav(payload.audio_base64)
+        return audio_only_detailed(data, sr)
+    except InvalidAudioError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except Exception:
+        logger.exception("error interno en /detect/audio")
         raise HTTPException(status_code=500, detail="error interno procesando el audio")
 
 

@@ -49,6 +49,15 @@
   .muted{color:var(--mut)}
   .hidden{display:none}
   .err{color:var(--red);font-size:13px;margin-top:10px}
+  .tabs{display:flex;gap:8px;margin-bottom:14px}
+  .tab{flex:1;background:var(--panel2);color:var(--mut);border:1px solid var(--line);border-radius:9px;padding:9px;font-weight:700;cursor:pointer;margin:0;font-size:13px;width:auto}
+  .tab.active{background:var(--accent);color:#04101f}
+  .recbox{text-align:center;padding:20px;background:var(--panel2);border-radius:12px}
+  .recdot{width:16px;height:16px;border-radius:50%;background:#3a4353;margin:0 auto 10px}
+  .recdot.live{background:var(--red);animation:pulse 1s infinite}
+  @keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(255,84,112,.5)}50%{opacity:.6;box-shadow:0 0 0 10px rgba(255,84,112,0)}}
+  .rectime{font-size:30px;font-weight:800;font-variant-numeric:tabular-nums}
+  #latency{color:var(--grn)}
 </style>
 </head>
 <body>
@@ -64,16 +73,34 @@
 <div class="wrap">
   <div class="card">
     <h2>Llamada entrante</h2>
-    <div id="drop" class="drop">
-      <div style="font-size:26px">🎧</div>
-      <div>Arrastra o haz clic para cargar el audio<br><span class="muted">WAV estéreo (canal 0 = cliente)</span></div>
+    <div class="tabs">
+      <button id="tabUp" class="tab active">📁 Subir audio</button>
+      <button id="tabRec" class="tab">🎙️ En vivo</button>
     </div>
-    <input id="file" type="file" accept=".wav,audio/*" class="hidden">
-    <div id="fname" class="file"></div>
-    <button id="go" disabled>Analizar llamada</button>
+
+    <div id="paneUp">
+      <div id="drop" class="drop">
+        <div style="font-size:26px">🎧</div>
+        <div>Arrastra o haz clic para cargar el audio<br><span class="muted">WAV / MP3 / M4A / OGG</span></div>
+      </div>
+      <input id="file" type="file" accept="audio/*,.wav,.m4a,.mp3,.ogg" class="hidden">
+      <div id="fname" class="file"></div>
+      <button id="go" disabled>Analizar llamada</button>
+    </div>
+
+    <div id="paneRec" class="hidden">
+      <div class="recbox">
+        <div id="recdot" class="recdot"></div>
+        <div id="rectime" class="rectime">00:00</div>
+        <div class="muted" id="rechint">Graba la voz del interlocutor</div>
+      </div>
+      <button id="recBtn">● Grabar</button>
+    </div>
+
     <div id="err" class="err"></div>
     <div class="metrics" style="margin-top:16px">
       <div>Umbral colgar: <b id="thr">—</b></div>
+      <div id="latency"></div>
     </div>
   </div>
 
@@ -96,7 +123,7 @@
       </div>
 
       <div class="signals">
-        <div class="sig"><span class="lab">Conductual (turnos)</span><div class="bar"><i id="b_tab"></i></div><span id="v_tab" class="muted"></span></div>
+        <div class="sig" id="row_tab"><span class="lab">Conductual (turnos)</span><div class="bar"><i id="b_tab"></i></div><span id="v_tab" class="muted"></span></div>
         <div class="sig"><span class="lab">Audio (síntesis)</span><div class="bar"><i id="b_audio"></i></div><span id="v_audio" class="muted"></span></div>
         <div class="sig"><span class="lab">· WavLM</span><div class="bar"><i id="b_wavlm"></i></div><span id="v_wavlm" class="muted"></span></div>
         <div class="sig"><span class="lab">· XLS-R-SLS</span><div class="bar"><i id="b_xlsr"></i></div><span id="v_xlsr" class="muted"></span></div>
@@ -148,15 +175,47 @@ function b64(buf){
 const col = p => p>=0.7?'var(--red)': p>=0.4?'var(--amb)':'var(--grn)';
 function setbar(id,val){ const p=Math.max(0,Math.min(1,val)); $(id).style.width=(p*100)+'%'; $(id).style.background=col(p); }
 
+async function analyze(base64){
+  $('err').textContent=''; $('latency').textContent='';
+  const t0=performance.now();
+  try{
+    const res = await fetch('/detect/audio',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({audio_base64:base64})});
+    if(!res.ok){ throw new Error((await res.json()).detail || res.status); }
+    const d = await res.json();
+    $('latency').textContent = 'Análisis: '+((performance.now()-t0)/1000).toFixed(1)+'s';
+    render(d);
+  }catch(e){ $('err').textContent='Error: '+e.message; }
+}
+
 $('go').onclick = async ()=>{
   if(!fileBuf) return;
-  $('go').disabled=true; $('go').textContent='Analizando…'; $('err').textContent='';
-  try{
-    const res = await fetch('/detect/detailed',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({audio_base64:b64(fileBuf)})});
-    if(!res.ok){ throw new Error((await res.json()).detail || res.status); }
-    render(await res.json());
-  }catch(e){ $('err').textContent='Error: '+e.message; }
+  $('go').disabled=true; $('go').textContent='Analizando…';
+  await analyze(b64(fileBuf));
   $('go').disabled=false; $('go').textContent='Analizar llamada';
+};
+
+$('tabUp').onclick=()=>{ $('tabUp').classList.add('active'); $('tabRec').classList.remove('active'); $('paneUp').classList.remove('hidden'); $('paneRec').classList.add('hidden'); };
+$('tabRec').onclick=()=>{ $('tabRec').classList.add('active'); $('tabUp').classList.remove('active'); $('paneRec').classList.remove('hidden'); $('paneUp').classList.add('hidden'); };
+
+let mr=null, recChunks=[], recTimer=null, recT0=0;
+$('recBtn').onclick = async ()=>{
+  if(mr && mr.state==='recording'){ mr.stop(); return; }
+  try{
+    const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+    recChunks=[]; mr=new MediaRecorder(stream);
+    mr.ondataavailable=e=>recChunks.push(e.data);
+    mr.onstop=async ()=>{
+      clearInterval(recTimer); $('recdot').classList.remove('live'); $('recBtn').textContent='● Grabar';
+      stream.getTracks().forEach(t=>t.stop());
+      const blob=new Blob(recChunks,{type:mr.mimeType||'audio/webm'});
+      const buf=await blob.arrayBuffer();
+      $('recBtn').disabled=true; $('rechint').textContent='Analizando…';
+      await analyze(b64(buf));
+      $('recBtn').disabled=false; $('rechint').textContent='Graba la voz del interlocutor';
+    };
+    mr.start(); recT0=Date.now(); $('recdot').classList.add('live'); $('recBtn').textContent='■ Detener';
+    recTimer=setInterval(()=>{ const s=Math.floor((Date.now()-recT0)/1000); $('rectime').textContent=String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); },250);
+  }catch(e){ $('err').textContent='No se pudo acceder al micrófono: '+e.message; }
 };
 
 function render(d){
@@ -177,7 +236,8 @@ function render(d){
   const m=map[rr]||[rr,'var(--mut)']; r.textContent=m[0]; r.style.background='rgba(255,255,255,.06)'; r.style.color=m[1]; r.style.border='1px solid '+m[1];
 
   const sg=d.signals||{};
-  setbar('b_tab',d.p_tabular); $('v_tab').textContent=(d.p_tabular*100).toFixed(0)+'%';
+  if(d.p_tabular==null){ $('row_tab').classList.add('hidden'); }
+  else { $('row_tab').classList.remove('hidden'); setbar('b_tab',d.p_tabular); $('v_tab').textContent=(d.p_tabular*100).toFixed(0)+'%'; }
   setbar('b_audio',d.p_audio); $('v_audio').textContent=(d.p_audio*100).toFixed(0)+'%';
   setbar('b_wavlm',sg.wavlm||0); $('v_wavlm').textContent=((sg.wavlm||0)*100).toFixed(0)+'%';
   setbar('b_xlsr',sg.xlsr||0); $('v_xlsr').textContent=((sg.xlsr||0)*100).toFixed(0)+'%';
