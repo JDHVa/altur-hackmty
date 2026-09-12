@@ -64,38 +64,82 @@ def decode_wav(audio_base64):
     return data, sr
 
 
-def predict(audio_base64):
-    state = _load()
-    tabular = state['tabular']
-    feature_cols = state['feature_cols']
-    ensemble = state['ensemble']
+VERIFY_FLOOR = 0.35
 
-    data, sr = decode_wav(audio_base64)
+try:
+    from src.features.prosody import prosody_features
+except Exception:
+    def prosody_features(caller_wave, sr):
+        return {}
+
+
+def recommend(p, threshold):
+    if p >= threshold:
+        return 'hangup'
+    if p >= VERIFY_FLOOR:
+        return 'verify'
+    return 'continue'
+
+
+def threshold():
+    ensemble = _load()['ensemble']
+    return float(ensemble['threshold']) if ensemble is not None else 0.5
+
+
+def _fuse(p_tabular, p_audio):
+    ensemble = _load()['ensemble']
+    if ensemble is None:
+        return p_tabular, 0.5
+    signals = ensemble['signals']
+    fusion = ensemble['fusion']
+    cal_tab = float(ensemble['calibrator'].transform([p_tabular])[0])
+    if 'audio' in signals and fusion['mode'] == 'avg' and p_audio is not None and p_audio != 0.5:
+        w = fusion['w_tab']
+        final = w * cal_tab + (1 - w) * p_audio
+    else:
+        final = cal_tab
+    return float(final), float(ensemble['threshold'])
+
+
+def tabular_score(caller, agent, sr):
+    state = _load()
+    duration_s = len(caller) / sr if sr else 0.0
+    turns = turns_from_audio(caller, agent, sr)
+    feats = extract_features_from_turns(turns, duration_s)
+    x = pd.DataFrame([[feats[c] for c in state['feature_cols']]], columns=state['feature_cols'])
+    return float(state['tabular'].predict_proba(x)[0, 1]), turns
+
+
+def bio_features(caller, sr):
+    f = prosody_features(caller, sr)
+    keys = ('hnr', 'shimmer_local', 'jitter_local', 'voiced_frac', 'f0_mean', 'f0_std')
+    return {k: round(float(f[k]), 4) for k in keys if k in f}
+
+
+def predict_detailed(data, sr):
     caller = data[:, 0]
     agent = data[:, 1] if data.shape[1] > 1 else np.zeros_like(caller)
     duration_s = len(caller) / sr if sr else 0.0
-
-    turns = turns_from_audio(caller, agent, sr)
-    feats = extract_features_from_turns(turns, duration_s)
-    x = pd.DataFrame([[feats[c] for c in feature_cols]], columns=feature_cols)
-    p_tabular = float(tabular.predict_proba(x)[0, 1])
-
+    p_tabular, turns = tabular_score(caller, agent, sr)
     p_audio = float(audio_score(caller, sr))
-
-    if ensemble is not None:
-        signals = ensemble['signals']
-        fusion = ensemble['fusion']
-        cal_tab = float(ensemble['calibrator'].transform([p_tabular])[0])
-        if 'audio' in signals and fusion['mode'] == 'avg' and p_audio != 0.5:
-            w = fusion['w_tab']
-            final = w * cal_tab + (1 - w) * p_audio
-        else:
-            final = cal_tab
-        threshold = ensemble['threshold']
-    else:
-        final = p_tabular
-        threshold = 0.5
-
-    is_synth = bool(final > threshold)
+    final, thr = _fuse(p_tabular, p_audio)
+    is_synth = bool(final > thr)
     confidence = final if is_synth else 1 - final
-    return {'is_synthetic': is_synth, 'confidence': round(float(confidence), 4)}
+    return {
+        'is_synthetic': is_synth,
+        'confidence': round(float(confidence), 4),
+        'p_final': round(final, 4),
+        'p_tabular': round(p_tabular, 4),
+        'p_audio': round(p_audio, 4),
+        'threshold': round(thr, 4),
+        'duration_s': round(duration_s, 2),
+        'n_turns': len(turns),
+        'bio': bio_features(caller, sr),
+        'recommendation': recommend(final, thr),
+    }
+
+
+def predict(audio_base64):
+    data, sr = decode_wav(audio_base64)
+    d = predict_detailed(data, sr)
+    return {'is_synthetic': d['is_synthetic'], 'confidence': d['confidence']}
