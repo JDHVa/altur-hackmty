@@ -19,6 +19,8 @@ Altur/
 ├── CLAUDE.md                 ← este archivo
 ├── GEMINI.md                 ← misma guía para Gemini
 ├── Reconocimiento de Voz Bancario.docx   ← enunciado / notas del reto
+├── api/                      ← FastAPI: POST /detect, /detect/detailed, WS /ws/call, /dataset/*
+├── web/                      ← Consola web "Centinela" (Next 16 + Tiger Data + Better Auth). Ver README.md
 └── hackmty26/                ← datos del reto (repo de la organización: alturio/hackmty26)
     ├── README.md             ← especificación oficial del challenge (LEER)
     ├── manifest.csv          ← 1 fila por llamada: anon_id, label, split, duration_s

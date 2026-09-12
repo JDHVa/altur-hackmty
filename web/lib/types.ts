@@ -12,6 +12,7 @@ export type BioFeatures = {
 export type ScoreFrame = {
   t: number;
   p_audio: number | null;
+  p_audio_raw?: number;
   p_tabular: number | null;
   p_final: number;
   threshold: number;
@@ -28,7 +29,9 @@ export type FinalVerdict = {
   p_tabular: number | null;
   threshold: number;
   duration_s: number;
+  n_turns?: number;
   bio: Partial<BioFeatures>;
+  recommendation: Recommendation;
 };
 
 export type WsServerMessage =

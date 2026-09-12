@@ -19,6 +19,7 @@ WINDOW_S = 8.0
 TABULAR_MIN_S = 10.0
 TABULAR_EVERY_S = 6.0
 TICK_S = 1.0
+EMA_ALPHA = 0.45
 
 
 class LiveCall:
@@ -28,6 +29,7 @@ class LiveCall:
         self.agent = np.zeros(0, dtype=np.float32)
         self.last_tab = None
         self.last_tab_t = -1e9
+        self.ema_audio = None
         self.busy = False
 
     def append(self, caller, agent=None):
@@ -45,7 +47,9 @@ class LiveCall:
         window = self.caller[-n:]
         if len(window) < self.sr:
             return None
-        p_audio = float(audio_score(window, self.sr))
+        p_raw = float(audio_score(window, self.sr))
+        self.ema_audio = p_raw if self.ema_audio is None else EMA_ALPHA * p_raw + (1 - EMA_ALPHA) * self.ema_audio
+        p_audio = float(self.ema_audio)
         if self.t >= TABULAR_MIN_S and self.t - self.last_tab_t >= TABULAR_EVERY_S:
             self.last_tab, _ = tabular_score(self.caller, self.agent, self.sr)
             self.last_tab_t = self.t
@@ -58,6 +62,7 @@ class LiveCall:
             'type': 'frame',
             't': round(self.t, 2),
             'p_audio': round(p_audio, 4),
+            'p_audio_raw': round(p_raw, 4),
             'p_tabular': round(p_tab, 4) if p_tab is not None else None,
             'p_final': round(float(final), 4),
             'threshold': round(float(thr), 4),

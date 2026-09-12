@@ -35,6 +35,4 @@ uvicorn
 pydantic
 python-multipart
 
-# --- Demo interactivo ---
-gradio                  # interfaz web humano-vs-IA (demo/app.py)
 websockets              # WebSocket /ws/call (uvicorn)
