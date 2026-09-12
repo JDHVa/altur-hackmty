@@ -21,13 +21,14 @@ def available():
 def _get_vad():
     global _vad
     if _vad is None:
-        from pyannote.audio import Pipeline
-        try:
-            _vad = Pipeline.from_pretrained('pyannote/voice-activity-detection', token=_TOKEN)
-        except TypeError:
-            _vad = Pipeline.from_pretrained('pyannote/voice-activity-detection', use_auth_token=_TOKEN)
+        from pyannote.audio import Model
+        from pyannote.audio.pipelines import VoiceActivityDetection
+        seg = Model.from_pretrained('pyannote/segmentation', token=_TOKEN)
+        pipe = VoiceActivityDetection(segmentation=seg)
+        pipe.instantiate({'onset': 0.5, 'offset': 0.5, 'min_duration_on': 0.0, 'min_duration_off': 0.0})
         if torch.cuda.is_available():
-            _vad.to(torch.device('cuda'))
+            pipe.to(torch.device('cuda'))
+        _vad = pipe
     return _vad
 
 
