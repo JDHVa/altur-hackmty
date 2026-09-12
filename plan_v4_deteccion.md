@@ -101,6 +101,29 @@ Cada fase deja el repo funcional y es testeable por separado.
 - **Tiempo de hackathon** → B-A y B-B son de bajo costo y alto valor; B-D es el grande.
   El endpoint con el modelo actual sigue siendo entregable válido en todo momento.
 
+## 6bis. Estado y resultados (actualizado)
+
+- ✅ **B-A** augmentation telefónica (`telephony_aug.py`) — códec en inferencia no bastaba; el fix era reentrenar.
+- ✅ **B-C** datos: 70 humanos reales (FLEURS + emilio) + sintéticos multi-motor (Edge, gTTS, Piper), canal μ-law idéntico.
+- ✅ **B-D** reentreno cabeza **WavLM frozen + logística calibrada**:
+  - Altur val AUC 1.0 (sin regresión).
+  - Humanos held-out (FLEURS-test + emilio): **100% correctos** (antes ~90% mal).
+  - **emilio: de 1.000 (IA) a 0.05 (HUMANO)** — guardarraíl cumplido.
+  - Motor neural **no visto (Piper): AUC 0.979**; a umbral 0.5 caza 15%, a **umbral EER≈0.09 caza 100%** con 92% humanos ok.
+- ✅ **B-E** `audio_score` ya usa la cabeza WavLM (fallback ResNet/stub); CPU 170s ≈ 3.3s.
+
+### ⚠️ Handoff a Jesús (ensemble/endpoint) — CRÍTICO
+El `audio_score` nuevo devuelve **humanos ≈0.01 y sintéticos-de-motor-no-visto ≈0.30** (ranking correcto, AUC 0.98).
+El umbral **0.5 es demasiado alto** para motores nuevos. Acciones:
+1. **Calibrar el umbral del ensemble sobre datos cross-corpus** (no solo Altur val) → cae ~0.09.
+2. Reevaluar los **pesos de fusión** (el audio ahora está en otra escala que el ResNet viejo).
+3. Warmup de WavLM al arrancar la API (carga fría ~12s).
+
+### Pendiente B (mejora continua)
+- Subir detección de motores nuevos a umbral 0.5 (más motores en entreno / recalibración).
+- **B-E parte 2:** ONNX de WavLM+cabeza para la Pi (Camino C).
+- **B-B:** features bio (jitter/shimmer/HNR) como señal interpretable para el demo.
+
 ## 7. Orden recomendado
 
 `B-A (diagnóstico μ-law) → B-B (features bio) → B-C (datos externos) → B-D (reentreno) → B-E (calibración+ONNX)`
