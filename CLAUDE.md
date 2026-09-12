@@ -112,3 +112,7 @@ Somos **3 personas trabajando en paralelo**. Para no chocar y poder testear junt
 
 Los humanos usaron datos personales inventados. **No intentar identificar a
 nadie.** Dataset solo para HackMTY 2026, **no redistribuir**.
+
+## Reglas de Codificación
+
+**ESTRICTO:** Al generar código, **NO usar comentarios**. Escribe únicamente el código funcional puro. No incluyas comentarios explicando el código, ni docstrings, ni líneas comentadas.
