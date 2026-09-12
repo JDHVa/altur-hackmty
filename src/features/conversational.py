@@ -164,11 +164,58 @@ def _energy_vad(signal, sr, frame_ms=30, threshold_ratio=0.05, min_gap_s=0.2):
     return merged
 
 
+def _to_8k_int16(signal, sr):
+    sig = np.asarray(signal, dtype=np.float32)
+    if sr != 8000:
+        n = int(round(len(sig) * 8000 / sr))
+        if n < 1:
+            return np.zeros(0, dtype=np.int16), 8000
+        sig = np.interp(np.linspace(0, len(sig), n, endpoint=False),
+                        np.arange(len(sig)), sig)
+    sig = np.clip(sig, -1.0, 1.0)
+    return (sig * 32767).astype(np.int16), 8000
+
+
+def _webrtc_vad(signal, sr, aggressiveness=3, frame_ms=30, min_gap_s=0.2):
+    import webrtcvad
+    pcm, sr8 = _to_8k_int16(signal, sr)
+    frame = int(sr8 * frame_ms / 1000)
+    if frame < 1 or len(pcm) < frame:
+        return []
+    vad = webrtcvad.Vad(aggressiveness)
+    n = len(pcm) // frame
+    active = [vad.is_speech(pcm[i * frame:(i + 1) * frame].tobytes(), sr8) for i in range(n)]
+    segments = []
+    start = None
+    for i, a in enumerate(active):
+        if a and start is None:
+            start = i
+        elif not a and start is not None:
+            segments.append((start * frame_ms / 1000.0, i * frame_ms / 1000.0))
+            start = None
+    if start is not None:
+        segments.append((start * frame_ms / 1000.0, n * frame_ms / 1000.0))
+    merged = []
+    for s, e in segments:
+        if merged and s - merged[-1][1] < min_gap_s:
+            merged[-1] = (merged[-1][0], e)
+        else:
+            merged.append((s, e))
+    return merged
+
+
+def _segments(signal, sr):
+    try:
+        return _webrtc_vad(signal, sr)
+    except Exception:
+        return _energy_vad(signal, sr)
+
+
 def turns_from_audio(caller_signal, agent_signal, sr):
     turns = []
-    for start, end in _energy_vad(caller_signal, sr):
+    for start, end in _segments(caller_signal, sr):
         turns.append({'channel': 0, 'start': start, 'end': end})
-    for start, end in _energy_vad(agent_signal, sr):
+    for start, end in _segments(agent_signal, sr):
         turns.append({'channel': 1, 'start': start, 'end': end})
     turns.sort(key=lambda t: t['start'])
     return turns
