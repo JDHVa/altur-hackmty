@@ -50,8 +50,32 @@ except Exception:
 TABULAR_PATH = 'src/models/saved/lgbm_tabular.pkl'
 FEATURES_PATH = 'src/models/saved/tabular_features.json'
 ENSEMBLE_PATH = 'src/models/saved/ensemble.pkl'
+AB_PATH = 'src/models/saved/altur_ab.joblib'
 
 _state = None
+_ab = None
+_ab_loaded = False
+
+
+def _load_ab():
+    global _ab, _ab_loaded
+    if not _ab_loaded:
+        _ab = joblib.load(AB_PATH) if os.path.exists(AB_PATH) else None
+        _ab_loaded = True
+    return _ab
+
+
+def ab_predict(caller, agent, sr, signals, turns):
+    ab = _load_ab()
+    if ab is None:
+        return None
+    duration_s = len(caller) / sr if sr else 0.0
+    feats = extract_features_from_turns(turns, duration_s)
+    feats['wavlm'] = float(signals.get('wavlm', 0.5))
+    feats['xlsr'] = float(signals.get('xlsr', 0.5))
+    feats['flow'] = float(signals.get('flow', 0.5))
+    x = np.array([[float(feats.get(k, 0.0)) for k in ab['features']]])
+    return float(ab['model'].predict_proba(x)[0, 1])
 
 
 def _load():
@@ -212,9 +236,13 @@ def predict_detailed(data, sr):
     p_tabular, turns = tabular_score(caller, agent, sr)
     signals = audio_signals(caller, sr)
     p_audio = combine_audio(signals)
-    final, thr = _fuse(p_tabular, p_audio)
+    p_ab = ab_predict(caller, agent, sr, signals, turns)
+    if p_ab is not None:
+        final, thr = p_ab, 0.5
+    else:
+        final, thr = _fuse(p_tabular, p_audio)
 
-    is_synth = bool(final > thr)
+    is_synth = bool(final >= thr)
     confidence = final if is_synth else 1 - final
     out = {
         'is_synthetic': is_synth,
@@ -289,8 +317,15 @@ def audio_only_detailed(data, sr):
         signals['semantic'] = sem
     p_audio = combine_audio(signals)
     turns = turns_from_audio(caller, agent, sr)
+    p_ab = ab_predict(caller, agent, sr, signals, turns)
     p_cal = audio_calibrate(p_audio)
-    if p_cal is not None:
+    if p_ab is not None:
+        is_synth = bool(p_ab >= 0.5)
+        confidence = p_ab if is_synth else 1 - p_ab
+        p_final = p_ab
+        thr = 0.5
+        rec = audio_recommend_cal(p_ab)
+    elif p_cal is not None:
         is_synth = bool(p_cal >= 0.5)
         confidence = p_cal if is_synth else 1 - p_cal
         p_final = p_cal
