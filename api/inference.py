@@ -65,12 +65,30 @@ def decode_wav(audio_base64):
 
 
 VERIFY_FLOOR = 0.35
+HEAVY_AUDIO = os.environ.get('HEAVY_AUDIO', '0') == '1'
 
 try:
     from src.features.prosody import prosody_features
 except Exception:
     def prosody_features(caller_wave, sr):
         return {}
+
+_heavy = None
+
+
+def _load_heavy():
+    global _heavy
+    if _heavy is None:
+        try:
+            from src.features.heavy_audio import xlsr_sls_score
+            from src.features.conversational import FEATURE_ORDER
+            beh = joblib.load('src/models/saved/prob_qda.joblib')
+            ens = joblib.load('src/models/saved/ensemble_full.joblib')
+            _heavy = {'xlsr': xlsr_sls_score, 'beh': beh, 'ens': ens, 'order': FEATURE_ORDER, 'ok': True}
+        except Exception as e:
+            print(f'[heavy] no disponible ({str(e)[:80]})')
+            _heavy = {'ok': False}
+    return _heavy
 
 
 def recommend(p, threshold):
@@ -123,9 +141,27 @@ def predict_detailed(data, sr):
     p_tabular, turns = tabular_score(caller, agent, sr)
     p_audio = float(audio_score(caller, sr))
     final, thr = _fuse(p_tabular, p_audio)
+    p_xlsr = None
+
+    if HEAVY_AUDIO:
+        h = _load_heavy()
+        if h.get('ok'):
+            try:
+                p_xlsr = float(h['xlsr'](caller, sr))
+                feats = extract_features_from_turns(turns, duration_s)
+                xb = np.array([[feats[c] for c in h['order']]])
+                p_beh = float(h['beh']['model'].predict_proba(xb)[0, 1])
+                ens = h['ens']
+                z = np.array([[p_beh, p_xlsr]])
+                raw = ens['stacker'].predict_proba(z)[0, 1]
+                final = float(ens['calibrator'].transform([raw])[0])
+                thr = float(ens['threshold'])
+            except Exception as e:
+                print(f'[heavy] fallo en inferencia ({str(e)[:80]})')
+
     is_synth = bool(final > thr)
     confidence = final if is_synth else 1 - final
-    return {
+    out = {
         'is_synthetic': is_synth,
         'confidence': round(float(confidence), 4),
         'p_final': round(final, 4),
@@ -137,6 +173,9 @@ def predict_detailed(data, sr):
         'bio': bio_features(caller, sr),
         'recommendation': recommend(final, thr),
     }
+    if p_xlsr is not None:
+        out['p_xlsr'] = round(p_xlsr, 4)
+    return out
 
 
 def predict(audio_base64):
