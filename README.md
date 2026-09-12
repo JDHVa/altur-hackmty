@@ -40,6 +40,22 @@ Stack: Next.js 16 (App Router), React 19, Tailwind v4, shadcn/ui, Motion, Rechar
 | `WS /ws/call?source=mic\|dataset&anon_id=&speed=` | Scoring por ventana en vivo. `mic`: el cliente manda PCM int16 8 kHz; `dataset`: el servidor reproduce el WAV estéreo. Emite `frame` cada ~1 s y `final` al colgar. |
 | `GET /dataset/calls`, `/dataset/calls/{id}/audio`, `/dataset/calls/{id}/label` | Llamadas del dataset para el modo simulación (label oculta hasta "Revelar"). |
 
+### Señales de audio (Camino B) y flags
+
+`p_audio` es el promedio ponderado de las señales disponibles: **XLS-R-SLS 0.5 · WavLM 0.3 · Flow-LLR 0.2**
+(las que fallen o no estén instaladas se omiten). Cada respuesta trae `signals: {wavlm, xlsr, flow}`.
+
+| Variable | Default | Efecto |
+|---|---|---|
+| `ALTUR_HEAVY` | `1` | `0` desactiva XLS-R y Flow-LLR (solo WavLM). Útil en CPU sin los pesos. |
+| `ALTUR_HEAVY_XLSR` / `ALTUR_HEAVY_FLOW` | `1` | Apagar una señal pesada en particular. |
+| `ALTUR_HEAVY_EVERY_S` | `4` | En `/ws/call`, cada cuántos segundos de llamada se recalculan las pesadas (WavLM va en cada tick). |
+| `ALTUR_WARMUP` | `1` | Carga modelos en background al arrancar (XLS-R frío ~30–60 s). |
+| `ALTUR_CORS_ORIGINS` | `http://localhost:3000` | Orígenes permitidos (separados por coma). |
+
+Requiere `zuko` y los pesos en `src/models/saved/` (`xlsr_sls.pt`, `flow_llr.joblib`); XLS-R 300M se descarga de HF la primera vez.
+En GPU (Emilio/Alonso) correr con todo activo; en CPU: `ALTUR_HEAVY=0 python -m uvicorn api.main:app --port 8000`.
+
 Semáforo del operador sobre `p` (prob. de sintético): `p < 0.35` continuar · `0.35 ≤ p < umbral` verificar · `p ≥ umbral` colgar.
 El umbral es el calibrado por EER del ensemble (`src/models/saved/ensemble.pkl`).
 

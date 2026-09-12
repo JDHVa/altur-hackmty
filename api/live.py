@@ -9,7 +9,7 @@ import numpy as np
 import soundfile as sf
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
-from api.inference import _load, audio_score, bio_features, tabular_score, _fuse, recommend, predict_detailed, threshold
+from api.inference import _load, audio_signals, combine_audio, heavy_available, bio_features, tabular_score, _fuse, recommend, predict_detailed, threshold
 from api.dataset import AUDIO_DIR
 
 router = APIRouter()
@@ -20,6 +20,7 @@ TABULAR_MIN_S = 10.0
 TABULAR_EVERY_S = 6.0
 TICK_S = 1.0
 EMA_ALPHA = 0.45
+HEAVY_EVERY_S = float(os.environ.get('ALTUR_HEAVY_EVERY_S', '4'))
 
 
 class LiveCall:
@@ -29,7 +30,9 @@ class LiveCall:
         self.agent = np.zeros(0, dtype=np.float32)
         self.last_tab = None
         self.last_tab_t = -1e9
-        self.ema_audio = None
+        self.ema = {}
+        self.raw = {}
+        self.last_heavy_t = -1e9
         self.busy = False
 
     def append(self, caller, agent=None):
@@ -47,9 +50,15 @@ class LiveCall:
         window = self.caller[-n:]
         if len(window) < self.sr:
             return None
-        p_raw = float(audio_score(window, self.sr))
-        self.ema_audio = p_raw if self.ema_audio is None else EMA_ALPHA * p_raw + (1 - EMA_ALPHA) * self.ema_audio
-        p_audio = float(self.ema_audio)
+        run_heavy = heavy_available() and self.t - self.last_heavy_t >= HEAVY_EVERY_S
+        fresh = audio_signals(window, self.sr, include_heavy=run_heavy)
+        if run_heavy:
+            self.last_heavy_t = self.t
+        for k, v in fresh.items():
+            self.raw[k] = v
+            self.ema[k] = v if k not in self.ema else EMA_ALPHA * v + (1 - EMA_ALPHA) * self.ema[k]
+        p_audio = combine_audio(self.ema)
+        p_raw = self.raw.get('wavlm', p_audio)
         if self.t >= TABULAR_MIN_S and self.t - self.last_tab_t >= TABULAR_EVERY_S:
             self.last_tab, _ = tabular_score(self.caller, self.agent, self.sr)
             self.last_tab_t = self.t
@@ -63,6 +72,7 @@ class LiveCall:
             't': round(self.t, 2),
             'p_audio': round(p_audio, 4),
             'p_audio_raw': round(p_raw, 4),
+            'signals': {k: round(float(v), 4) for k, v in self.ema.items()},
             'p_tabular': round(p_tab, 4) if p_tab is not None else None,
             'p_final': round(float(final), 4),
             'threshold': round(float(thr), 4),

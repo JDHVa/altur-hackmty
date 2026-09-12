@@ -5,7 +5,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
-from api.inference import predict, predict_detailed, decode_wav, InvalidAudioError
+from api.inference import predict, predict_detailed, decode_wav, warmup, heavy_available, InvalidAudioError
 from api.dataset import router as dataset_router
 from api.live import router as live_router
 
@@ -32,9 +32,15 @@ class DetectResponse(BaseModel):
     confidence: float
 
 
+@app.on_event("startup")
+def _warmup():
+    if os.environ.get("ALTUR_WARMUP", "1") != "0":
+        warmup(async_=True)
+
+
 @app.get("/health")
 def health():
-    return {"status": "ok"}
+    return {"status": "ok", "heavy": heavy_available()}
 
 
 @app.post("/detect", response_model=DetectResponse)

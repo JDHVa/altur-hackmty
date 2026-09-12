@@ -3,11 +3,17 @@ import json
 import os
 import base64
 import binascii
+import sys
+import threading
 
 import numpy as np
 import pandas as pd
 import soundfile as sf
 import joblib
+
+_SRC_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'src')
+if _SRC_DIR not in sys.path:
+    sys.path.insert(0, _SRC_DIR)
 
 from src.features.conversational import extract_features_from_turns, turns_from_audio
 
@@ -19,6 +25,23 @@ try:
     from src.features.audio import audio_score
 except Exception:
     def audio_score(caller_wave, sr):
+        return 0.5
+
+HEAVY_ENABLED = os.environ.get('ALTUR_HEAVY', '1') != '0'
+HEAVY_XLSR = os.environ.get('ALTUR_HEAVY_XLSR', '1') != '0'
+HEAVY_FLOW = os.environ.get('ALTUR_HEAVY_FLOW', '1') != '0'
+AUDIO_WEIGHTS = {'wavlm': 0.3, 'xlsr': 0.5, 'flow': 0.2}
+
+try:
+    from src.features.heavy_audio import xlsr_sls_score, flow_llr_score
+    HEAVY_IMPORTED = True
+except Exception:
+    HEAVY_IMPORTED = False
+
+    def xlsr_sls_score(caller_wave, sr):
+        return 0.5
+
+    def flow_llr_score(caller_wave, sr):
         return 0.5
 
 TABULAR_PATH = 'src/models/saved/lgbm_tabular.pkl'
@@ -116,12 +139,50 @@ def bio_features(caller, sr):
     return {k: round(float(f[k]), 4) for k in keys if k in f}
 
 
+def heavy_available():
+    return HEAVY_ENABLED and HEAVY_IMPORTED
+
+
+def audio_signals(caller, sr, include_heavy=True):
+    out = {'wavlm': float(audio_score(caller, sr))}
+    if include_heavy and heavy_available():
+        if HEAVY_XLSR:
+            out['xlsr'] = float(xlsr_sls_score(caller, sr))
+        if HEAVY_FLOW:
+            out['flow'] = float(flow_llr_score(caller, sr))
+    return out
+
+
+def combine_audio(signals):
+    live = {k: v for k, v in signals.items() if v is not None and v != 0.5}
+    if not live:
+        return 0.5
+    w = {k: AUDIO_WEIGHTS.get(k, 0.2) for k in live}
+    total = sum(w.values())
+    return float(sum(live[k] * w[k] for k in live) / total)
+
+
+def warmup(async_=True):
+    def run():
+        try:
+            _load()
+            dummy = np.zeros(int(1.5 * 8000), dtype=np.float32)
+            audio_signals(dummy, 8000)
+        except Exception:
+            pass
+    if async_:
+        threading.Thread(target=run, daemon=True).start()
+    else:
+        run()
+
+
 def predict_detailed(data, sr):
     caller = data[:, 0]
     agent = data[:, 1] if data.shape[1] > 1 else np.zeros_like(caller)
     duration_s = len(caller) / sr if sr else 0.0
     p_tabular, turns = tabular_score(caller, agent, sr)
-    p_audio = float(audio_score(caller, sr))
+    signals = audio_signals(caller, sr)
+    p_audio = combine_audio(signals)
     final, thr = _fuse(p_tabular, p_audio)
     is_synth = bool(final > thr)
     confidence = final if is_synth else 1 - final
@@ -131,6 +192,7 @@ def predict_detailed(data, sr):
         'p_final': round(final, 4),
         'p_tabular': round(p_tabular, 4),
         'p_audio': round(p_audio, 4),
+        'signals': {k: round(v, 4) for k, v in signals.items()},
         'threshold': round(thr, 4),
         'duration_s': round(duration_s, 2),
         'n_turns': len(turns),
