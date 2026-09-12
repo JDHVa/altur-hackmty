@@ -94,6 +94,7 @@ def report(name, y, s):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--out', default=os.path.join(ROOT, 'src', 'models', 'saved', 'wavlm_head.joblib'))
+    ap.add_argument('--production', action='store_true')
     args = ap.parse_args()
 
     d = np.load(os.path.join(ROOT, 'models', 'ssl_cache', 'wavlm_base_plus_dataset.npz'), allow_pickle=True)
@@ -117,11 +118,15 @@ def main():
     Xs_edge_mx = embed_dir(os.path.join(ROOT, 'datasets_externos', 'Synthetic_MX_8kHz'), 'smx')
     Xs_piper = embed_dir(os.path.join(ROOT, 'datasets_externos', 'Synthetic_Piper_8kHz'), 'piper')
 
-    X_train = np.concatenate([Xa[tr], Xh_tr, Xs_edge_mx, Xs_edge_multi, Xs_gtts])
-    y_train = np.concatenate([ya[tr], np.zeros(len(Xh_tr)),
-                              np.ones(len(Xs_edge_mx)), np.ones(len(Xs_edge_multi)), np.ones(len(Xs_gtts))]).astype(int)
+    train_parts = [Xa[tr], Xh_tr, Xs_edge_mx, Xs_edge_multi, Xs_gtts]
+    train_labels = [ya[tr], np.zeros(len(Xh_tr)), np.ones(len(Xs_edge_mx)), np.ones(len(Xs_edge_multi)), np.ones(len(Xs_gtts))]
+    if args.production:
+        train_parts.append(Xs_piper)
+        train_labels.append(np.ones(len(Xs_piper)))
+    X_train = np.concatenate(train_parts)
+    y_train = np.concatenate(train_labels).astype(int)
     print(f'TRAIN total={len(y_train)} (humanos={ (y_train==0).sum() } sinteticos={ (y_train==1).sum() })')
-    print('  motores en train: Edge + gTTS | held-out test: Piper (neural, no visto)')
+    print('  motores en train: Edge + gTTS' + (' + Piper (PRODUCCION)' if args.production else ' | held-out test: Piper (neural, no visto)'))
 
     sc = StandardScaler().fit(X_train)
     base = LogisticRegression(max_iter=3000, C=0.1, class_weight='balanced')
