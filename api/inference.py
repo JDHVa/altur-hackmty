@@ -30,7 +30,10 @@ except Exception:
 HEAVY_ENABLED = os.environ.get('ALTUR_HEAVY', '1') != '0'
 HEAVY_XLSR = os.environ.get('ALTUR_HEAVY_XLSR', '1') != '0'
 HEAVY_FLOW = os.environ.get('ALTUR_HEAVY_FLOW', '1') != '0'
-AUDIO_WEIGHTS = {'wavlm': 0.3, 'xlsr': 0.5, 'flow': 0.2}
+AUDIO_WEIGHTS = {'wavlm': 0.33, 'xlsr': 0.45, 'flow': 0.22}
+_aw = os.environ.get('ALTUR_AUDIO_WEIGHTS', '')
+if _aw:
+    AUDIO_WEIGHTS = json.loads(_aw)
 
 try:
     from src.features.heavy_audio import xlsr_sls_score, flow_llr_score
@@ -230,7 +233,7 @@ def predict_detailed(data, sr):
     return out
 
 
-AUDIO_THR = float(os.environ.get('ALTUR_AUDIO_THR', '0.30'))
+AUDIO_THR = float(os.environ.get('ALTUR_AUDIO_THR', '0.35'))
 
 
 def audio_recommend(p):
