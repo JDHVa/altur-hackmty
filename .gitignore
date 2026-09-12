@@ -4,6 +4,9 @@ datasets_externos/
 # WAV temporales de pruebas locales
 _tmp_wav/
 
+# Cache de features SSL (derivada, regenerable con scripts/extract_ssl.py)
+models/ssl_cache/
+
 # Datos del reto (no redistribuir)
 hackmty26/audio/
 *.zip
