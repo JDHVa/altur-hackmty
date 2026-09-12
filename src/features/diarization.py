@@ -22,7 +22,10 @@ def _get_vad():
     global _vad
     if _vad is None:
         from pyannote.audio import Pipeline
-        _vad = Pipeline.from_pretrained('pyannote/voice-activity-detection', use_auth_token=_TOKEN)
+        try:
+            _vad = Pipeline.from_pretrained('pyannote/voice-activity-detection', token=_TOKEN)
+        except TypeError:
+            _vad = Pipeline.from_pretrained('pyannote/voice-activity-detection', use_auth_token=_TOKEN)
         if torch.cuda.is_available():
             _vad.to(torch.device('cuda'))
     return _vad
