@@ -56,7 +56,7 @@ def bar(p, n=30):
 def main():
     ap = argparse.ArgumentParser(description='Analiza un audio: HUMANO vs IA')
     ap.add_argument('audio', help='ruta al audio (wav/mp3/m4a/...)')
-    ap.add_argument('--threshold', type=float, default=0.2)
+    ap.add_argument('--threshold', type=float, default=0.30)
     ap.add_argument('--no-codec', action='store_true', help='no aplicar canal telefonico g711')
     args = ap.parse_args()
 
