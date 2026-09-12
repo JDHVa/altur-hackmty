@@ -1,6 +1,9 @@
 # Datasets externos descargados por download_datasets.py
 datasets_externos/
 
+# WAV temporales de pruebas locales
+_tmp_wav/
+
 # Datos del reto (no redistribuir)
 hackmty26/audio/
 *.zip
