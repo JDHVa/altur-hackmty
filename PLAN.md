@@ -5,6 +5,16 @@
 > estado del arte 2025 en detección de voz sintética.
 > **Asignación por persona → ver [`EQUIPO.md`](EQUIPO.md).**
 
+## Estado actual (avance)
+
+- ✅ **Señal A (conversacional)** — features con paridad exacta, LightGBM entrenado (VAL AUC 0.99).
+- ✅ **API `POST /detect`** — probada HTTP end-to-end (acc 0.93 en val, pipeline VAD-consistente).
+- ✅ **Ensemble + calibración** — isotónica OOF + umbral por EER; lista para enchufar B/C.
+- 🟡 **Señal B (audio)** — código zero-shot y contrato listos (Emilio); falta entrenar/evaluar/integrar.
+- ⬜ **Señal C (LLM zero-shot)** — no empezada (requiere decisión Gemini vs LLM local).
+- 🟡 **Datasets externos + Edge-TTS MX** — MLAAD parcial; falta generador MX y reanudar descargas.
+- ⬜ **Hardware "Centinela Altur"** (Camino C) — no empezado.
+
 ## Contexto
 
 **Decisiones tomadas:** infraestructura **híbrida** (core local que siempre funciona +

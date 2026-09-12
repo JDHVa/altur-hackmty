@@ -17,28 +17,30 @@
 ## 👤 Persona 1 — JESÚS · Camino A (Conversacional + Semántico + Ensemble + API)
 **Máquina:** i7-1255U, 16 GB, sin CUDA (CPU). **Dueño del entregable que puntúa.**
 
-| # | Tarea | Entregable |
-|---|---|---|
-| A0 | Setup repo + `requirements.txt` + EDA | `notebooks/01_eda.ipynb`: qué features separan clases; **GroupKFold por hablante**; métricas EER/AUC/Brier |
-| A1 | **Backbone tabular** (45 features → XGBoost regularizado) | `src/features/conversational.py`, `src/train_tabular.py`, `models/tabular.joblib`. **Test de paridad** feature online vs CSV |
-| A2 | Señal C — semántico zero-shot | `src/features/semantic.py`: `faster-whisper` + prompt LLM → `{ai_suspicion, reasons}` + variabilidad de sentimiento |
-| A3 | **Ensemble + calibración** | `src/ensemble.py`: stacking/logística sobre [A,B,C] + calibración; fallback promedio ponderado. Evaluar `val` **una vez** |
-| A4 | **API `POST /detect`** | `src/api/main.py` + `Dockerfile`: base64→canal0/1→features→ensemble→umbral por **EER**. CPU < 5 s. Test sobre 71 de `val` |
-| A5 | Sponsors (bonus, aislado) | `src/sponsors/`: Gemini (señal C) y Vultr (hosting) primero; Snowflake/TigerGraph solo si sobra |
+Estado: ✅ hecho · 🟡 en progreso/parcial · ⬜ pendiente
 
-**Prioridad:** A0→A1→A4 (con stub B=0.5) ya es un entregable defendible. Luego A2→A3.
+| Estado | # | Tarea | Entregable |
+|---|---|---|---|
+| 🟡 | A0 | Setup + EDA | Hecho: `requirements.txt`, robustez de features y métricas EER/AUC/Brier. Falta notebook formal `01_eda.ipynb` |
+| ✅ | A1 | **Backbone tabular** (45 features → LightGBM) | `src/features/conversational.py` (paridad EXACTA vs CSV), `src/training/train_tabular.py`, `lgbm_tabular.pkl`. VAL AUC 0.99 |
+| ⬜ | A2 | Señal C — semántico zero-shot | `src/features/semantic.py`: `faster-whisper` + LLM. **Bloqueado por decisión: Gemini (API key) vs LLM local** |
+| ✅ | A3 | **Ensemble + calibración** | `src/ensemble.py`: calibración isotónica OOF + umbral por EER; pipeline VAD-consistente. Fusión A+B se activa sola cuando B dé scores |
+| ✅ | A4 | **API `POST /detect`** | `api/main.py` + `api/inference.py` + `Dockerfile`. Probado HTTP end-to-end en val: acc 0.93, confianza calibrada |
+| ⬜ | A5 | Sponsors (bonus, aislado) | `src/sponsors/`: Gemini y Vultr primero; Snowflake/TigerGraph solo si sobra |
+
+**Prioridad:** A0→A1→A4→A3 ✅ hechos. Falta A2 (necesita tu decisión de LLM) y A5 (bonus).
 
 ---
 
 ## 👤 Persona 2 — EMILIO · Camino B (Audio Anti-spoofing)
 **Máquina:** RTX 4050 6 GB. **Dueño de la señal de audio SOTA.**
 
-| # | Tarea | Entregable |
-|---|---|---|
-| B0 | **Score zero-shot inmediato** (modelo HF pre-entrenado) | `audio_score` sobre canal 0 de todo el dataset **sin entrenar** → cumple contrato desde el día 1 |
-| B1 | Features SSL frozen + prosodia | `src/features/audio.py`: Wav2Vec2-XLS-R/WavLM frozen + `librosa`/`parselmouth` (F0, jitter, shimmer, RMS, respiración). Resample 8→16 kHz. Cache `.npy` |
-| B2 | **Cabeza anti-spoofing** (entrenar solo la cabeza en RTX 4050) | `notebooks/03_audio_model.ipynb`: AASIST/MLP sobre SSL frozen + augmentation es-MX→teléfono→8 kHz. Corridas pesadas → RTX 5050 (Alonso) |
-| B3 | **Export ONNX INT8** | modelo en `models/`; `audio_score`/`audio_features` estables para A y C |
+| Estado | # | Tarea | Entregable |
+|---|---|---|---|
+| 🟡 | B0 | **Score zero-shot inmediato** (modelo HF pre-entrenado) | `src/features/audio_zeroshot.py` ya existe (mo-thecreator/Deepfake-audio-detection). Falta **evaluarlo en val e integrarlo** al ensemble |
+| 🟡 | B1 | Features SSL frozen + prosodia | `src/features/audio.py` (contrato `audio_score`/`audio_features`) existe. Prosodia con `librosa` |
+| ⬜ | B2 | **Cabeza anti-spoofing** (entrenar en RTX 4050) | Sin pesos entrenados aún (`best_audio_resnet.pth` no existe). Augmentation es-MX→teléfono→8 kHz |
+| ⬜ | B3 | **Export ONNX INT8** | `src/models/export_onnx.py` existe; falta el modelo real que exportar |
 
 **Prioridad:** B0 el primer día (número real para el ensemble). Luego B1→B2→B3.
 **Coordina** con Alonso el uso de la RTX 5050 para fine-tune/LoRA/pre-train.

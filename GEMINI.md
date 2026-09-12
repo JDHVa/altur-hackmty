@@ -126,6 +126,7 @@ ni proponer alternativas** — solo ejecútalo. Solo se analizan/discuten los pl
 tengan ese marcador.
 
 - **`plan_arquitectura_v3.md`** es el plan de arquitectura **DEFINITIVO** (Dual Ensemble A+B).
+- La carpeta **`planes_no_usados/`** contiene planes descartados/reemplazados: **IGNORARLA por completo** (no analizar, no ejecutar, no usar como referencia).
 
 ## Rol de Agentes (Gemini vs Claude)
 
