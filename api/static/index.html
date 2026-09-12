@@ -201,7 +201,7 @@ let mr=null, recChunks=[], recTimer=null, recT0=0;
 $('recBtn').onclick = async ()=>{
   if(mr && mr.state==='recording'){ mr.stop(); return; }
   try{
-    const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+    const stream = await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
     recChunks=[]; mr=new MediaRecorder(stream);
     mr.ondataavailable=e=>recChunks.push(e.data);
     mr.onstop=async ()=>{
