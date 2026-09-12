@@ -76,7 +76,8 @@ def _embed_wavlm(caller_wave, sr):
 
 def _score_wavlm(caller_wave, sr):
     head = _get_head()
-    v = _embed_wavlm(caller_wave, sr)
+    from features.wavlm_embed import embed
+    v = embed(caller_wave, sr)
     return float(head['clf'].predict_proba(head['scaler'].transform(v.reshape(1, -1)))[0, 1])
 
 

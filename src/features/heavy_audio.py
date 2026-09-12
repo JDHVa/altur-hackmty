@@ -70,34 +70,14 @@ def xlsr_sls_score(caller_wave: np.ndarray, sr: int) -> float:
         return 0.5
 
 
-def _load_wavlm():
-    global _wavlm_fe, _wavlm
-    if _wavlm is None:
-        from transformers import AutoFeatureExtractor, WavLMModel
-        _wavlm_fe = AutoFeatureExtractor.from_pretrained(_WAVLM_ID)
-        _wavlm = WavLMModel.from_pretrained(_WAVLM_ID, use_safetensors=True).to(_DEVICE).eval()
-    return _wavlm_fe, _wavlm
-
-
-@torch.no_grad()
-def _wavlm_embed(caller_wave, sr):
-    fe, m = _load_wavlm()
-    w = _to_16k(caller_wave, sr)
-    vecs = []
-    for ch in _windows(w):
-        inp = fe(ch.numpy(), sampling_rate=_SR, return_tensors='pt').input_values.to(_DEVICE)
-        h = m(inp).last_hidden_state.squeeze(0)
-        vecs.append(torch.cat([h.mean(0), h.std(0)]).cpu().numpy())
-    return np.mean(vecs, axis=0).astype(np.float32)
-
-
 def flow_llr_score(caller_wave: np.ndarray, sr: int) -> float:
     global _flow
     try:
         import joblib
+        from features.wavlm_embed import embed
         if _flow is None:
             _flow = joblib.load(os.path.join(_SAVED, 'flow_llr.joblib'))
-        v = _wavlm_embed(caller_wave, sr).reshape(1, -1)
+        v = embed(caller_wave, sr).reshape(1, -1)
         return float(_flow.predict_proba(v)[0, 1])
     except Exception as e:
         print(f'[heavy] flow_llr no disponible ({str(e)[:80]})')
