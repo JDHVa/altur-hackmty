@@ -1,0 +1,25 @@
+# --- Core / Senal A (tabular, CPU) ---
+pandas
+numpy
+scikit-learn
+lightgbm
+xgboost
+joblib
+
+# --- Senal B (audio) ---
+torch
+torchaudio
+torchvision
+librosa
+soundfile
+tqdm
+transformers            # Wav2Vec2/WavLM (modelo SOTA, tarea Camino B)
+
+# --- Senal C (semantico / LLM) ---
+faster-whisper
+
+# --- API POST /detect ---
+fastapi
+uvicorn
+pydantic
+python-multipart

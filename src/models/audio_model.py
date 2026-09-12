@@ -4,7 +4,7 @@ import torchaudio
 import torchvision.models as models
 
 class VoiceSpoofResNet(nn.Module):
-    def __init__(self, sample_rate=16000, n_mels=64, pretrained=False):
+    def __init__(self, sample_rate=16000, n_mels=64, pretrained=True, dropout=0.3):
         super(VoiceSpoofResNet, self).__init__()
         
         # Capa para convertir el audio crudo en un espectrograma de Mel
@@ -26,9 +26,13 @@ class VoiceSpoofResNet(nn.Module):
         # Modificamos la primera capa convolucional
         self.resnet.conv1 = nn.Conv2d(1, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
         
-        # Modificamos la ultima capa (fc) para clasificacion binaria (Humano vs IA)
+        # Modificamos la ultima capa (fc) para clasificacion binaria (Humano vs IA).
+        # Anadimos Dropout para reducir el sobreajuste (dataset chico: 282 calls).
         num_ftrs = self.resnet.fc.in_features
-        self.resnet.fc = nn.Linear(num_ftrs, 1) # Salida cruda (logit) para BCEWithLogitsLoss
+        self.resnet.fc = nn.Sequential(
+            nn.Dropout(dropout),
+            nn.Linear(num_ftrs, 1),  # Salida cruda (logit) para BCEWithLogitsLoss
+        )
 
     def forward(self, x):
         # x shape: (batch, 1, time_samples)

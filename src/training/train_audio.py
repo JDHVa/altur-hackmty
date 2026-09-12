@@ -33,9 +33,12 @@ def train_audio_model():
     
     print(f'Train samples: {len(train_dataset)} | Val samples: {len(val_dataset)}')
     
-    model = VoiceSpoofResNet(pretrained=False).to(device)
+    # Transfer learning (pretrained=True) + weight_decay para reducir sobreajuste.
+    # NOTA: el modelo SOTA del plan es Wav2Vec2-AASIST frozen (tarea de Emilio en GPU,
+    # ver PLAN.md/EQUIPO.md). Este ResNet es el baseline de audio mientras tanto.
+    model = VoiceSpoofResNet(pretrained=True).to(device)
     criterion = nn.BCEWithLogitsLoss()
-    optimizer = optim.Adam(model.parameters(), lr=lr)
+    optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=1e-4)
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', factor=0.5, patience=2)
     
     best_auc = 0.0
