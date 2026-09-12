@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Radio } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PhoneSim } from "./phone-sim";
 import { VerdictGauge } from "./verdict-gauge";
@@ -158,7 +158,7 @@ export function CallRoom() {
 
       <div className="flex min-w-0 flex-col gap-4 lg:col-span-7 xl:col-span-8">
         <Card>
-          <CardHeader className="flex-row items-center justify-between">
+          <CardHeader>
             <CardTitle className="flex items-center gap-2 text-sm">
               Consola del operador
               {live ? (
@@ -167,9 +167,9 @@ export function CallRoom() {
                 </Badge>
               ) : null}
             </CardTitle>
-            <div className="font-mono text-[11px] text-muted-foreground">
+            <CardAction className="font-mono text-[11px] text-muted-foreground">
               {state.frames.length} ventanas · umbral {pct(state.threshold)}
-            </div>
+            </CardAction>
           </CardHeader>
           <CardContent className="grid gap-6 md:grid-cols-[auto_minmax(0,1fr)] md:items-center">
             <VerdictGauge p={state.final?.p_final ?? latest?.p_final ?? null} threshold={state.threshold} active={live} />

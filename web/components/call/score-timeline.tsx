@@ -10,8 +10,8 @@ const NAMES: Record<string, string> = { final: "Ensemble", audio: "Audio (B)", t
 export function ScoreTimeline({ frames, threshold, height = 176 }: { frames: ScoreFrame[]; threshold: number; height?: number }) {
   const data = frames.map((f) => ({ t: f.t, final: f.p_final, audio: f.p_audio ?? undefined, tabular: f.p_tabular ?? undefined }));
   return (
-    <div className="w-full" style={{ height }}>
-      <ResponsiveContainer>
+    <div className="w-full min-w-0 overflow-hidden" style={{ height }}>
+      <ResponsiveContainer width="100%" height="100%" debounce={50}>
         <AreaChart data={data} margin={{ top: 8, right: 8, left: -24, bottom: 0 }}>
           <defs>
             <linearGradient id="gFinal" x1="0" y1="0" x2="0" y2="1">

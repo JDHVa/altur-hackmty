@@ -11,7 +11,7 @@ const C = 2 * Math.PI * R;
 export function VerdictGauge({ p, threshold, active, size = 240 }: { p: number | null; threshold: number; active: boolean; size?: number }) {
   const value = p ?? 0;
   const spring = useSpring(value, { stiffness: 60, damping: 18, mass: 0.8 });
-  const [display, setDisplay] = useState(0);
+  const [display, setDisplay] = useState(value);
   useEffect(() => spring.set(value), [value, spring]);
   useMotionValueEvent(spring, "change", (v) => setDisplay(v));
   const offset = useTransform(spring, (v) => C * (1 - Math.max(0, Math.min(1, v))));
