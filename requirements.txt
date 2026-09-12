@@ -14,9 +14,12 @@ librosa
 soundfile
 tqdm
 transformers            # Wav2Vec2/WavLM (modelo SOTA, tarea Camino B)
+praat-parselmouth       # jitter/shimmer/HNR (features bio, plan v4 B-B)
+imageio-ffmpeg          # ffmpeg embebido: codecs telefonicos (plan v4 B-A)
 
 # --- Senal C (semantico / LLM) ---
 faster-whisper
+edge-tts                # TTS es-MX para dataset sintetico (plan v4 B-C)
 
 # --- API POST /detect ---
 fastapi
