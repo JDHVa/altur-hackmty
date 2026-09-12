@@ -13,11 +13,10 @@ venv/
 
 .DS_Store
 
-# Modelos guardados
-src/models/saved/
+# Modelos guardados (se versionan solo los del Camino B via Git LFS)
+src/models/saved/*
+!src/models/saved/best_audio_resnet.pth
+!src/models/saved/audio_resnet.onnx
 
 # Dataset
 hackmty26/
-
-# Modelos/artefactos entrenados
-src/models/saved/
