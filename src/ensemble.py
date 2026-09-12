@@ -5,7 +5,6 @@ import numpy as np
 import joblib
 import lightgbm as lgb
 from sklearn.isotonic import IsotonicRegression
-from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import cross_val_predict, StratifiedKFold
 from sklearn.metrics import roc_auc_score, roc_curve, accuracy_score, brier_score_loss
 
@@ -69,37 +68,33 @@ def main():
         cv=cv, method='predict_proba')[:, 1]
     p_tab_val = model.predict_proba(val_df[feature_cols])[:, 1]
 
+    calibrator = IsotonicRegression(out_of_bounds='clip')
+    calibrator.fit(oof_tab, y_train)
+    cal_tab_val = calibrator.transform(p_tab_val)
+
     scorer = _audio_available()
     signals = ['tabular']
 
     if scorer is not None:
         signals.append('audio')
-        p_aud_train = _audio_scores_for(train_df, scorer)
+        w_tab = 0.5
         p_aud_val = _audio_scores_for(val_df, scorer)
-        X_oof = np.column_stack([oof_tab, p_aud_train])
-        X_val = np.column_stack([p_tab_val, p_aud_val])
-        meta = LogisticRegression()
-        meta.fit(X_oof, y_train)
-        raw_oof = meta.predict_proba(X_oof)[:, 1]
-        raw_val = meta.predict_proba(X_val)[:, 1]
+        final_val = w_tab * cal_tab_val + (1 - w_tab) * p_aud_val
+        threshold = 0.5
+        fusion = {'mode': 'avg', 'w_tab': w_tab}
     else:
-        meta = None
-        raw_oof = oof_tab
-        raw_val = p_tab_val
+        final_val = cal_tab_val
+        threshold, _ = eer_threshold(y_train, calibrator.transform(oof_tab))
+        fusion = {'mode': 'tabular'}
 
-    calibrator = IsotonicRegression(out_of_bounds='clip')
-    calibrator.fit(raw_oof, y_train)
-    cal_val = calibrator.transform(raw_val)
-    threshold, eer = eer_threshold(y_train, calibrator.transform(raw_oof))
-
-    val_preds = (cal_val > threshold).astype(int)
-    auc = roc_auc_score(y_val, cal_val)
+    val_preds = (final_val > threshold).astype(int)
+    auc = roc_auc_score(y_val, final_val)
     acc = accuracy_score(y_val, val_preds)
-    brier = brier_score_loss(y_val, cal_val)
+    brier = brier_score_loss(y_val, final_val)
 
     print('=== Ensemble / Calibracion (dominio VAD, consistente con la API) ===')
-    print('Senales usadas:', signals)
-    print(f'Umbral por EER (OOF train): {threshold:.4f} | EER train: {eer:.4f}')
+    print('Senales usadas:', signals, '| fusion:', fusion)
+    print(f'Umbral: {threshold:.4f}')
     print(f'VAL -> ROC AUC: {auc:.4f} | Accuracy@umbral: {acc:.4f} | Brier: {brier:.4f}')
 
     os.makedirs('src/models/saved', exist_ok=True)
@@ -107,8 +102,8 @@ def main():
         'signals': signals,
         'model': model,
         'feature_cols': feature_cols,
-        'meta': meta,
         'calibrator': calibrator,
+        'fusion': fusion,
         'threshold': threshold,
     }, ENSEMBLE_PATH)
     print('Ensemble guardado en', ENSEMBLE_PATH)

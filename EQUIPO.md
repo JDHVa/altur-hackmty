@@ -37,13 +37,14 @@ Estado: ✅ hecho · 🟡 en progreso/parcial · ⬜ pendiente
 
 | Estado | # | Tarea | Entregable |
 |---|---|---|---|
-| 🟡 | B0 | **Score zero-shot inmediato** (modelo HF pre-entrenado) | `src/features/audio_zeroshot.py` ya existe (mo-thecreator/Deepfake-audio-detection). Falta **evaluarlo en val e integrarlo** al ensemble |
-| 🟡 | B1 | Features SSL frozen + prosodia | `src/features/audio.py` (contrato `audio_score`/`audio_features`) existe. Prosodia con `librosa` |
-| ⬜ | B2 | **Cabeza anti-spoofing** (entrenar en RTX 4050) | Sin pesos entrenados aún (`best_audio_resnet.pth` no existe). Augmentation es-MX→teléfono→8 kHz |
-| ⬜ | B3 | **Export ONNX INT8** | `src/models/export_onnx.py` existe; falta el modelo real que exportar |
+| ⚠️ | B0 | Score zero-shot (modelo HF pre-entrenado) | **DESCARTADO**: `audio_zeroshot.py` (mo-thecreator/Deepfake-audio-detection) da **AUC 0.41 en val** — peor que azar. No transfiere a 8 kHz español (domain gap). NO integrar. |
+| ✅ | B1 | Contrato de audio + prosodia | `src/features/audio.py` con `audio_score`/`audio_features` (prosodia). Funciona. |
+| ✅ | B2 | **Modelo de audio entrenado** (ResNet mel-spec) | `best_audio_resnet.pth` entrenado por Emilio: **VAL AUC 0.9976, EER 0.028**. Señal B real. |
+| ✅ | B3 | **Export ONNX** | `audio_resnet.onnx` exportado (para edge/Camino C). |
 
-**Prioridad:** B0 el primer día (número real para el ensemble). Luego B1→B2→B3.
-**Coordina** con Alonso el uso de la RTX 5050 para fine-tune/LoRA/pre-train.
+**✅ Fusión A+B integrada** al ensemble (promedio 0.5/0.5, `src/ensemble.py`). **API end-to-end en val: 0.958** (vs 0.930 solo tabular).
+**Siguiente (Emilio):** fine-tune con dataset Edge-TTS es-MX + augmentation telefónica para robustez ante voces nuevas del set oculto (ojo overfitting: val ya casi perfecto).
+**Coordina** con Alonso la RTX 5050 para fine-tune/pre-train.
 
 ---
 

@@ -67,11 +67,13 @@ def predict(audio_base64):
 
     if ensemble is not None:
         signals = ensemble['signals']
-        if 'audio' in signals and ensemble['meta'] is not None and p_audio != 0.5:
-            raw = float(ensemble['meta'].predict_proba([[p_tabular, p_audio]])[0, 1])
+        fusion = ensemble['fusion']
+        cal_tab = float(ensemble['calibrator'].transform([p_tabular])[0])
+        if 'audio' in signals and fusion['mode'] == 'avg' and p_audio != 0.5:
+            w = fusion['w_tab']
+            final = w * cal_tab + (1 - w) * p_audio
         else:
-            raw = p_tabular
-        final = float(ensemble['calibrator'].transform([raw])[0])
+            final = cal_tab
         threshold = ensemble['threshold']
     else:
         final = p_tabular

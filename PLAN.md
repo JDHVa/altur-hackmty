@@ -9,8 +9,8 @@
 
 - ✅ **Señal A (conversacional)** — features con paridad exacta, LightGBM entrenado (VAL AUC 0.99).
 - ✅ **API `POST /detect`** — probada HTTP end-to-end (acc 0.93 en val, pipeline VAD-consistente).
-- ✅ **Ensemble + calibración** — isotónica OOF + umbral por EER; lista para enchufar B/C.
-- 🟡 **Señal B (audio)** — código zero-shot y contrato listos (Emilio); falta entrenar/evaluar/integrar.
+- ✅ **Ensemble + calibración** — isotónica OOF + fusión A+B (promedio); **API fusionada en val: 0.958**.
+- ✅ **Señal B (audio)** — ResNet entrenado (Emilio) VAL AUC 0.9976, **integrado al ensemble**. (Zero-shot HF descartado: AUC 0.41.)
 - ⬜ **Señal C (LLM zero-shot)** — no empezada (requiere decisión Gemini vs LLM local).
 - 🟡 **Datasets externos + Edge-TTS MX** — MLAAD parcial; falta generador MX y reanudar descargas.
 - ⬜ **Hardware "Centinela Altur"** (Camino C) — no empezado.
