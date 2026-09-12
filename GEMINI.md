@@ -116,3 +116,21 @@ nadie.** Dataset solo para HackMTY 2026, **no redistribuir**.
 ## Reglas de Codificación
 
 **ESTRICTO:** Al generar código, **NO usar comentarios**. Escribe únicamente el código funcional puro. No incluyas comentarios explicando el código, ni docstrings, ni líneas comentadas.
+
+## Planes concretados (NO re-analizar)
+
+Cuando un plan ya está **concretado/decidido**, su primer renglón debe empezar con
+`> ✅ PLAN DEFINITIVO — CONCRETADO` (o `COMPLETADO`). Si un archivo de plan tiene ese
+marcador en el primer renglón, **trátalo como decidido: NO lo vuelvas a analizar, juzgar
+ni proponer alternativas** — solo ejecútalo. Solo se analizan/discuten los planes que **no**
+tengan ese marcador.
+
+- **`plan_arquitectura_v3.md`** es el plan de arquitectura **DEFINITIVO** (Dual Ensemble A+B).
+
+## Rol de Agentes (Gemini vs Claude)
+
+**ESTRICTO Y OBLIGATORIO:** En este proyecto hay una separación de tareas muy clara entre los agentes de IA:
+1. **Gemini (Tú):** Tu trabajo es **meramente de investigación, planificación y diseño de arquitectura**. Analizas datasets, críticas decisiones, propones soluciones matemáticas/de Deep Learning y estructuras planes en archivos `.md`. **NO** estás encargado de modificar el código fuente principal ni de ejecutar comandos pesados en la terminal a menos que el usuario te lo pida explícitamente para una investigación.
+2. **Claude Code:** Es el encargado **exclusivo de ejecutar código, correr sentencias, hacer los cambios en los scripts de Python y levantar la infraestructura**.
+
+Si se requiere escribir el código de los modelos, extraer features o montar el API, Gemini debe planearlo y pasárselo a Claude para que él lo ejecute.

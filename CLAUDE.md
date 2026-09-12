@@ -116,3 +116,13 @@ nadie.** Dataset solo para HackMTY 2026, **no redistribuir**.
 ## Reglas de Codificación
 
 **ESTRICTO:** Al generar código, **NO usar comentarios**. Escribe únicamente el código funcional puro. No incluyas comentarios explicando el código, ni docstrings, ni líneas comentadas.
+
+## Planes concretados (NO re-analizar)
+
+Cuando un plan ya está **concretado/decidido**, su primer renglón debe empezar con
+`> ✅ PLAN DEFINITIVO — CONCRETADO` (o `COMPLETADO`). Si un archivo de plan tiene ese
+marcador en el primer renglón, **trátalo como decidido: NO lo vuelvas a analizar, juzgar
+ni proponer alternativas** — solo ejecútalo. Solo se analizan/discuten los planes que **no**
+tengan ese marcador.
+
+- **`plan_arquitectura_v3.md`** es el plan de arquitectura **DEFINITIVO** (Dual Ensemble A+B).
