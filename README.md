@@ -59,4 +59,5 @@ En GPU (Emilio/Alonso) correr con todo activo; en CPU: `ALTUR_HEAVY=0 python -m 
 Semáforo del operador sobre `p` (prob. de sintético): `p < 0.35` continuar · `0.35 ≤ p < umbral` verificar · `p ≥ umbral` colgar.
 El umbral es el calibrado por EER del ensemble (`src/models/saved/ensemble.pkl`).
 
+Documentación técnica de tecnologías: [`docs/DOCUMENTACION_TECNICA.md`](docs/DOCUMENTACION_TECNICA.md).
 Ver [`CLAUDE.md`](CLAUDE.md), [`PLAN.md`](PLAN.md) y [`EQUIPO.md`](EQUIPO.md) para el contexto del reto y la división de trabajo.
