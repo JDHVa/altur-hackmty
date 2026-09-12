@@ -15,8 +15,14 @@ from features.audio import audio_score
 from features.heavy_audio import xlsr_sls_score, flow_llr_score
 from features.prosody import prosody_features
 
-WEIGHTS = {'wavlm': 0.3, 'xlsr': 0.5, 'flow': 0.2}
+WEIGHTS = {'wavlm': 0.25, 'xlsr': 0.4, 'prosody': 0.25, 'flow': 0.1}
 FFMPEG = imageio_ffmpeg.get_ffmpeg_exe()
+_SAVED = os.path.join(os.path.dirname(__file__), '..', 'src', 'models', 'saved')
+try:
+    import joblib
+    _PROS = joblib.load(os.path.join(_SAVED, 'prosody_clf.joblib'))
+except Exception:
+    _PROS = None
 
 
 def load_any(path):
@@ -50,7 +56,7 @@ def bar(p, n=30):
 def main():
     ap = argparse.ArgumentParser(description='Analiza un audio: HUMANO vs IA')
     ap.add_argument('audio', help='ruta al audio (wav/mp3/m4a/...)')
-    ap.add_argument('--threshold', type=float, default=0.5)
+    ap.add_argument('--threshold', type=float, default=0.2)
     ap.add_argument('--no-codec', action='store_true', help='no aplicar canal telefonico g711')
     args = ap.parse_args()
 
@@ -82,8 +88,12 @@ def main():
              'flow': float(flow_llr_score(c, psr))}
         per.append(s)
     sig = {k: float(np.mean([p[k] for p in per])) for k in ('wavlm', 'xlsr', 'flow')}
-    final = combine(sig)
     bio = prosody_features(proc, psr)
+    if _PROS is not None:
+        import numpy as _np
+        xb = _np.array([[bio[k] for k in _PROS['keys']]])
+        sig['prosody'] = float(_PROS['model'].predict_proba(xb)[0, 1])
+    final = combine(sig)
 
     veredicto = 'IA / SINTETICO' if final >= args.threshold else 'HUMANO'
     print()
@@ -98,8 +108,9 @@ def main():
     print(f'  (umbral {args.threshold})')
     print('-' * 52)
     print('  Senales de audio (prob. sintetico):')
-    for k in ('wavlm', 'xlsr', 'flow'):
-        print(f'    {k:6s} (w={WEIGHTS[k]}): {sig[k]*100:5.1f}%  {bar(sig[k], 20)}')
+    for k in ('wavlm', 'xlsr', 'prosody', 'flow'):
+        if k in sig:
+            print(f'    {k:8s} (w={WEIGHTS[k]}): {sig[k]*100:5.1f}%  {bar(sig[k], 20)}')
     print('-' * 52)
     print('  Prosodia (humano suele: HNR bajo, shimmer alto):')
     print(f'    HNR={bio.get("hnr",0):.1f}dB  shimmer={bio.get("shimmer_local",0):.3f}  '

@@ -31,6 +31,7 @@ src/models/saved/*
 !src/models/saved/xlsr_sls.pt
 !src/models/saved/flow_llr.joblib
 !src/models/saved/ensemble_full.joblib
+!src/models/saved/prosody_clf.joblib
 
 # Dataset
 hackmty26/
