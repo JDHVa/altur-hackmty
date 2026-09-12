@@ -36,3 +36,6 @@ hackmty26/
 
 # Modelos TTS externos (generadores de test, pesados)
 models/piper/
+
+*credentials.env
+.env
