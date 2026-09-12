@@ -1,13 +1,17 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+import logging
 
-from api.inference import predict
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel, Field
+
+from api.inference import predict, InvalidAudioError
+
+logger = logging.getLogger("altur.detect")
 
 app = FastAPI(title="Altur Voice Spoofing Detector")
 
 
 class DetectRequest(BaseModel):
-    audio_base64: str
+    audio_base64: str = Field(..., min_length=1)
 
 
 class DetectResponse(BaseModel):
@@ -23,7 +27,9 @@ def health():
 @app.post("/detect", response_model=DetectResponse)
 def detect(payload: DetectRequest):
     try:
-        result = predict(payload.audio_base64)
-    except Exception as exc:
+        return predict(payload.audio_base64)
+    except InvalidAudioError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
-    return result
+    except Exception as exc:
+        logger.exception("error interno en /detect")
+        raise HTTPException(status_code=500, detail="error interno procesando el audio")

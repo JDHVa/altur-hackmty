@@ -2,6 +2,7 @@ import io
 import json
 import os
 import base64
+import binascii
 
 import numpy as np
 import pandas as pd
@@ -9,6 +10,10 @@ import soundfile as sf
 import joblib
 
 from src.features.conversational import extract_features_from_turns, turns_from_audio
+
+
+class InvalidAudioError(ValueError):
+    pass
 
 try:
     from src.features.audio import audio_score
@@ -42,8 +47,20 @@ def _load():
 
 
 def decode_wav(audio_base64):
-    raw = base64.b64decode(audio_base64)
-    data, sr = sf.read(io.BytesIO(raw), always_2d=True)
+    if not isinstance(audio_base64, str) or not audio_base64.strip():
+        raise InvalidAudioError('audio_base64 vacio o no es texto')
+    try:
+        raw = base64.b64decode(audio_base64, validate=True)
+    except (binascii.Error, ValueError):
+        raise InvalidAudioError('base64 invalido')
+    if not raw:
+        raise InvalidAudioError('audio vacio tras decodificar base64')
+    try:
+        data, sr = sf.read(io.BytesIO(raw), always_2d=True, dtype='float32')
+    except Exception as exc:
+        raise InvalidAudioError(f'no se pudo leer el WAV: {str(exc)[:120]}')
+    if data.size == 0 or sr <= 0:
+        raise InvalidAudioError('audio sin muestras o sample rate invalido')
     return data, sr
 
 
