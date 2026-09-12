@@ -74,11 +74,26 @@ def _embed_wavlm(caller_wave, sr):
     return np.mean(vecs, axis=0).astype(np.float32)
 
 
+def _chunks(caller_wave, sr, secs=6, maxc=8):
+    if caller_wave.ndim > 1:
+        caller_wave = caller_wave[0]
+    win = int(sr * secs)
+    n = caller_wave.shape[0]
+    if n <= win:
+        return [caller_wave]
+    k = min(maxc, n // win + 1)
+    starts = np.linspace(0, n - win, k).astype(int)
+    return [caller_wave[s:s + win] for s in starts]
+
+
 def _score_wavlm(caller_wave, sr):
     head = _get_head()
     from features.wavlm_embed import embed
-    v = embed(caller_wave, sr)
-    return float(head['clf'].predict_proba(head['scaler'].transform(v.reshape(1, -1)))[0, 1])
+    ps = []
+    for ch in _chunks(caller_wave, sr):
+        v = embed(ch, sr)
+        ps.append(head['clf'].predict_proba(head['scaler'].transform(v.reshape(1, -1)))[0, 1])
+    return float(np.mean(ps))
 
 
 def _get_resnet():

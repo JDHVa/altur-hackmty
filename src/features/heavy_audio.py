@@ -53,18 +53,28 @@ def _load_xlsr():
     return _xlsr_fe, _xlsr, _sls
 
 
+def _chunks6(w, secs=6, maxc=8):
+    win = _SR * secs
+    n = w.shape[0]
+    if n <= win:
+        return [w]
+    k = min(maxc, n // win + 1)
+    starts = np.linspace(0, n - win, k).astype(int)
+    return [w[s:s + win] for s in starts]
+
+
 @torch.no_grad()
 def xlsr_sls_score(caller_wave: np.ndarray, sr: int) -> float:
     try:
         fe, xlsr, sls = _load_xlsr()
         w = _to_16k(caller_wave, sr)
-        accs = []
-        for ch in _windows(w):
+        probs = []
+        for ch in _chunks6(w):
             inp = fe(ch.numpy(), sampling_rate=_SR, return_tensors='pt').input_values.to(_DEVICE)
             hs = xlsr(inp).hidden_states
-            accs.append(torch.stack([h.squeeze(0).mean(0) for h in hs]).cpu().numpy())
-        feat = torch.tensor(np.mean(accs, axis=0)[None], device=_DEVICE)
-        return float(sls.prob(feat).item())
+            feat = torch.stack([h.squeeze(0).mean(0) for h in hs]).unsqueeze(0)
+            probs.append(float(sls.prob(feat).item()))
+        return float(np.mean(probs))
     except Exception as e:
         print(f'[heavy] xlsr_sls no disponible ({str(e)[:80]})')
         return 0.5
@@ -77,8 +87,12 @@ def flow_llr_score(caller_wave: np.ndarray, sr: int) -> float:
         from features.wavlm_embed import embed
         if _flow is None:
             _flow = joblib.load(os.path.join(_SAVED, 'flow_llr.joblib'))
-        v = embed(caller_wave, sr).reshape(1, -1)
-        return float(_flow.predict_proba(v)[0, 1])
+        w = _to_16k(caller_wave, sr)
+        probs = []
+        for ch in _chunks6(w):
+            v = embed(ch.numpy(), _SR).reshape(1, -1)
+            probs.append(float(_flow.predict_proba(v)[0, 1]))
+        return float(np.mean(probs))
     except Exception as e:
         print(f'[heavy] flow_llr no disponible ({str(e)[:80]})')
         return 0.5
