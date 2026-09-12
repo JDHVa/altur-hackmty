@@ -44,6 +44,7 @@ Estado: ✅ hecho · 🟡 en progreso/parcial · ⬜ pendiente
 
 **✅ Fusión A+B integrada** al ensemble (promedio 0.5/0.5, `src/ensemble.py`). **API end-to-end en val: 0.958** (vs 0.930 solo tabular).
 **Siguiente (Emilio):** fine-tune con dataset Edge-TTS es-MX + augmentation telefónica para robustez ante voces nuevas del set oculto (ojo overfitting: val ya casi perfecto).
+**⚠️ OJO datos (ver `plan_nuevos_datasets.md`):** Edge-TTS da SOLO sintéticos → hacen falta **humanos reales** (Common Voice es o **grabados por nosotros**) con el **mismo procesado de canal** (`telephony_aug.py`). Edge-TTS solo, sin balance, puede empeorar el modelo. Podemos **grabar nuestro propio audio** en es-MX si hace falta.
 **Coordina** con Alonso la RTX 5050 para fine-tune/pre-train.
 
 ---

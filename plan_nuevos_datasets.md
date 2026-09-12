@@ -54,3 +54,36 @@ pip install edge-tts torchaudio soundfile requests
 
 ### Manual Verification
 - Te pediré que escuches un archivo generado `fake_es_MX_001.wav` para confirmar si la acústica del "teléfono" suena similar a las llamadas del banco que provee el reto.
+
+---
+
+## ⚠️ Advertencias de estrategia de datos (LEER antes de generar/entrenar)
+
+### 1. Edge-TTS solo da SINTÉTICOS — nos faltan HUMANOS reales
+`generate_synthetic_mx.py` produce **solo voz sintética** (clase `synthetic`). **No genera ni un humano real.**
+Entrenar con puros sintéticos de Edge-TTS **desbalancea** el dataset y puede **empeorar** el modelo.
+Para que el aumento sirva, hay que agregar **humanos reales** en la MISMA proporción y condiciones:
+- Humanos externos: subset **Common Voice español** pasado por el mismo pipeline telefónico.
+- **Humanos grabados por nosotros** (ver punto 4).
+
+### 2. Higiene de canal (bug que puede tirar todo)
+**Humanos y sintéticos deben pasar por EXACTAMENTE el mismo procesado** (resample 8 kHz + filtro banda 300–3400 Hz + códec/ruido, vía `src/features/telephony_aug.py`).
+Si los sintéticos van filtrados y los humanos no (o al revés), el modelo aprende **el canal, no la voz** → 99% en pruebas y **colapso en la evaluación oculta**.
+
+### 3. Variedad de motores TTS
+Altur usó *algún* motor de voz (posible ElevenLabs/Azure/Google), **no** Edge-TTS.
+Aumentar solo con Edge-TTS enseña "sinteticidad de Microsoft", que puede no parecerse al set oculto.
+Si se aumenta, usar **varios motores** para aprender sinteticidad genérica, no un motor específico.
+
+### 4. Podemos GRABAR nuestro propio audio (opción válida y recomendada)
+Nos faltan humanos reales en-dominio. **Podemos grabarlos nosotros:**
+- Varias personas (equipo + conocidos) leyendo/improvisando frases de atención bancaria en **español mexicano**.
+- Grabar por teléfono/mic, luego pasar por `telephony_aug.py` (mismo 8 kHz/filtro que los sintéticos).
+- Idealmente diálogos (caller + agente) para replicar la dinámica conversacional de los turnos.
+- Beneficio: voces **nuevas y reales** in-domain → mejora la robustez ante las voces nuevas del set oculto, que es justo la preocupación principal.
+- Límite: serán pocas voces; sirve como complemento, no como dataset masivo.
+
+### 5. ¿Vale la pena todo esto?
+El modelo de audio (B) ya da **0.9976 en val**. El aumento **no es para subir val**, es para **robustez ante voces nuevas**.
+Hacerlo **mal** (solo Edge-TTS, sin humanos, sin canal idéntico) tiene más riesgo que beneficio.
+Hacerlo **bien** (sintéticos variados + humanos reales/grabados + canal idéntico) es la ruta correcta si el modelo no generaliza al set oculto.
