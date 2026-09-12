@@ -234,6 +234,20 @@ def predict_detailed(data, sr):
 
 
 AUDIO_THR = float(os.environ.get('ALTUR_AUDIO_THR', '0.35'))
+AUDIO_CAL_PATH = 'src/models/saved/audio_confidence_calib.joblib'
+_audio_cal = None
+_audio_cal_loaded = False
+
+
+def audio_calibrate(p):
+    global _audio_cal, _audio_cal_loaded
+    if not _audio_cal_loaded:
+        _audio_cal = joblib.load(AUDIO_CAL_PATH) if os.path.exists(AUDIO_CAL_PATH) else None
+        _audio_cal_loaded = True
+    if _audio_cal is None:
+        return None
+    import math
+    return 1.0 / (1.0 + math.exp(-(_audio_cal['a'] * p + _audio_cal['b'])))
 
 
 def audio_recommend(p):
@@ -244,28 +258,63 @@ def audio_recommend(p):
     return 'continue'
 
 
+def audio_recommend_cal(p):
+    if p >= 0.5:
+        return 'hangup'
+    if p >= 0.35:
+        return 'verify'
+    return 'continue'
+
+
+SEMANTIC_ENABLED = os.environ.get('ALTUR_SEMANTIC', '0') == '1'
+
+
+def semantic_signal(caller, sr):
+    if not SEMANTIC_ENABLED:
+        return None
+    try:
+        from src.features.semantic import semantic_score
+        return float(semantic_score(caller, sr))
+    except Exception:
+        return None
+
+
 def audio_only_detailed(data, sr):
     caller = data[:, 0]
     agent = data[:, 1] if data.shape[1] > 1 else np.zeros_like(caller)
     duration_s = len(caller) / sr if sr else 0.0
     signals = audio_signals(caller, sr)
+    sem = semantic_signal(caller, sr)
+    if sem is not None:
+        signals['semantic'] = sem
     p_audio = combine_audio(signals)
     turns = turns_from_audio(caller, agent, sr)
-    is_synth = bool(p_audio >= AUDIO_THR)
-    confidence = p_audio if is_synth else 1 - p_audio
+    p_cal = audio_calibrate(p_audio)
+    if p_cal is not None:
+        is_synth = bool(p_cal >= 0.5)
+        confidence = p_cal if is_synth else 1 - p_cal
+        p_final = p_cal
+        thr = 0.5
+        rec = audio_recommend_cal(p_cal)
+    else:
+        is_synth = bool(p_audio >= AUDIO_THR)
+        confidence = p_audio if is_synth else 1 - p_audio
+        p_final = p_audio
+        thr = AUDIO_THR
+        rec = audio_recommend(p_audio)
     return {
         'is_synthetic': is_synth,
         'confidence': round(float(confidence), 4),
-        'p_final': round(float(p_audio), 4),
+        'p_final': round(float(p_final), 4),
         'p_audio': round(float(p_audio), 4),
         'signals': {k: round(v, 4) for k, v in signals.items()},
-        'threshold': AUDIO_THR,
+        'threshold': thr,
         'mode': 'audio_only',
         'duration_s': round(duration_s, 2),
         'n_turns': len(turns),
         'turns': [{'channel': int(t['channel']), 'start': round(float(t['start']), 2), 'end': round(float(t['end']), 2)} for t in turns[:400]],
         'bio': bio_features(caller, sr),
-        'recommendation': audio_recommend(p_audio),
+        'recommendation': rec,
     }
 
 

@@ -68,12 +68,41 @@ def _ollama_suspicion(transcript):
     return max(0.0, min(1.0, float(m.group(1)) / 100.0))
 
 
+_DISFLUENCIAS = ('eh', 'este', 'mmm', 'ehh', 'pues', 'o sea', 'osea', 'bueno', 'a ver',
+                 'digo', 'perdon', 'perdon,', 'este...', 'em', 'mm', 'aja', 'ajа', 'nomas')
+_LEAKAGE = ('como modelo de lenguaje', 'modelo de lenguaje', 'no puedo ayudar', 'no tengo acceso',
+            'mis instrucciones', 'como ia', 'soy una ia', 'asistente virtual', 'fui entrenado')
+
+
+def lexical_suspicion(transcript):
+    t = transcript.lower()
+    words = re.findall(r"\w+", t)
+    n = max(1, len(words))
+    for p in _LEAKAGE:
+        if p in t:
+            return 0.95
+    dis = sum(t.count(m) for m in _DISFLUENCIAS)
+    repairs = len(re.findall(r'\b(\w+)[,. ]+\1\b', t))
+    corrections = t.count('no, ') + t.count('digo') + t.count('perdon')
+    human_cues = dis + repairs + corrections
+    rate = human_cues / n
+    susp = 1.0 - min(1.0, rate * 12.0)
+    if n < 8:
+        susp = 0.5
+    return float(max(0.05, min(0.95, susp)))
+
+
 def semantic_score(caller_wave, sr, agent_wave=None):
     try:
         transcript = transcribe(caller_wave, sr)
         if not transcript:
             return 0.5
-        score = _ollama_suspicion(transcript)
-        return 0.5 if score is None else score
+        try:
+            llm = _ollama_suspicion(transcript)
+        except Exception:
+            llm = None
+        if llm is not None:
+            return llm
+        return lexical_suspicion(transcript)
     except Exception:
         return 0.5
