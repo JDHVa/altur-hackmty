@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Centinela Altur — Consola de Operador</title>
+<style>
+  :root{
+    --bg:#0d1017; --panel:#161b24; --panel2:#1d2330; --line:#2a3342;
+    --txt:#e6ebf2; --mut:#8a97a8; --grn:#25c281; --amb:#f5b13d; --red:#ff5470; --accent:#4da3ff;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);font:14px/1.5 system-ui,Segoe UI,Roboto,sans-serif}
+  header{display:flex;align-items:center;gap:12px;padding:14px 22px;border-bottom:1px solid var(--line);background:linear-gradient(90deg,#111621,#0d1017)}
+  header .logo{width:34px;height:34px;border-radius:8px;background:radial-gradient(circle at 30% 30%,#4da3ff,#1b3a63);display:grid;place-items:center;font-size:18px}
+  header h1{font-size:16px;margin:0;letter-spacing:.5px}
+  header .sub{color:var(--mut);font-size:12px}
+  .dot{width:9px;height:9px;border-radius:50%;background:#555;display:inline-block;margin-right:5px}
+  .dot.on{background:var(--grn);box-shadow:0 0 8px var(--grn)}
+  .wrap{max-width:1100px;margin:0 auto;padding:22px;display:grid;grid-template-columns:340px 1fr;gap:18px}
+  @media(max-width:820px){.wrap{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px}
+  .card h2{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--mut);margin:0 0 12px}
+  .drop{border:2px dashed var(--line);border-radius:12px;padding:26px 14px;text-align:center;color:var(--mut);cursor:pointer;transition:.15s}
+  .drop:hover{border-color:var(--accent);color:var(--txt)}
+  .drop.small{padding:14px}
+  button{background:var(--accent);color:#04101f;border:0;border-radius:9px;padding:11px 16px;font-weight:700;cursor:pointer;width:100%;margin-top:12px;font-size:14px}
+  button:disabled{opacity:.5;cursor:default}
+  .file{font-size:12px;color:var(--mut);margin-top:8px;word-break:break-all}
+  .verdict{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+  .badge{font-size:22px;font-weight:800;padding:10px 18px;border-radius:12px;letter-spacing:.5px}
+  .rec{font-size:13px;font-weight:800;padding:8px 14px;border-radius:9px;text-transform:uppercase;letter-spacing:1px}
+  .gaugewrap{display:flex;align-items:center;gap:22px;margin:6px 0 4px}
+  .pct{font-size:44px;font-weight:800}
+  .pct small{font-size:15px;color:var(--mut);font-weight:600}
+  .signals{margin-top:6px}
+  .sig{display:grid;grid-template-columns:120px 1fr 46px;align-items:center;gap:10px;margin:9px 0}
+  .sig .lab{color:var(--mut);font-size:13px}
+  .bar{height:9px;background:var(--panel2);border-radius:6px;overflow:hidden}
+  .bar > i{display:block;height:100%;border-radius:6px}
+  .metrics{display:flex;gap:22px;flex-wrap:wrap;margin-top:6px;color:var(--mut);font-size:13px}
+  .metrics b{color:var(--txt)}
+  .flow{height:46px;background:var(--panel2);border-radius:8px;position:relative;overflow:hidden;margin-top:6px}
+  .seg{position:absolute;top:0;height:100%;opacity:.85}
+  .seg.c{background:var(--red)}
+  .seg.a{background:var(--accent)}
+  .leg{display:flex;gap:16px;font-size:12px;color:var(--mut);margin-top:8px}
+  .sw{width:11px;height:11px;border-radius:3px;display:inline-block;margin-right:5px;vertical-align:-1px}
+  .muted{color:var(--mut)}
+  .hidden{display:none}
+  .err{color:var(--red);font-size:13px;margin-top:10px}
+  .tabs{display:flex;gap:8px;margin-bottom:14px}
+  .tab{flex:1;background:var(--panel2);color:var(--mut);border:1px solid var(--line);border-radius:9px;padding:9px;font-weight:700;cursor:pointer;margin:0;font-size:13px;width:auto}
+  .tab.active{background:var(--accent);color:#04101f}
+  .recbox{text-align:center;padding:20px;background:var(--panel2);border-radius:12px}
+  .recdot{width:16px;height:16px;border-radius:50%;background:#3a4353;margin:0 auto 10px}
+  .recdot.live{background:var(--red);animation:pulse 1s infinite}
+  @keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(255,84,112,.5)}50%{opacity:.6;box-shadow:0 0 0 10px rgba(255,84,112,0)}}
+  .rectime{font-size:30px;font-weight:800;font-variant-numeric:tabular-nums}
+  #latency{color:var(--grn)}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">🛡️</div>
+  <div>
+    <h1>CENTINELA ALTUR</h1>
+    <div class="sub">Consola antifraude · detección de voz sintética en llamadas</div>
+  </div>
+  <div style="margin-left:auto" class="sub"><span id="dot" class="dot"></span><span id="apistat">conectando…</span></div>
+</header>
+
+<div class="wrap">
+  <div class="card">
+    <h2>Llamada entrante</h2>
+    <div class="tabs">
+      <button id="tabUp" class="tab active">📁 Subir audio</button>
+      <button id="tabRec" class="tab">🎙️ En vivo</button>
+    </div>
+
+    <div id="paneUp">
+      <div id="drop" class="drop">
+        <div style="font-size:26px">🎧</div>
+        <div>Arrastra o haz clic para cargar el audio<br><span class="muted">WAV / MP3 / M4A / OGG</span></div>
+      </div>
+      <input id="file" type="file" accept="audio/*,.wav,.m4a,.mp3,.ogg" class="hidden">
+      <div id="fname" class="file"></div>
+      <button id="go" disabled>Analizar llamada</button>
+    </div>
+
+    <div id="paneRec" class="hidden">
+      <div class="recbox">
+        <div id="recdot" class="recdot"></div>
+        <div id="rectime" class="rectime">00:00</div>
+        <div class="muted" id="rechint">Graba la voz del interlocutor</div>
+      </div>
+      <button id="recBtn">● Grabar</button>
+    </div>
+
+    <div id="err" class="err"></div>
+    <div class="metrics" style="margin-top:16px">
+      <div>Umbral colgar: <b id="thr">—</b></div>
+      <div id="latency"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Veredicto del operador</h2>
+    <div id="empty" class="muted">Carga una llamada para analizar el riesgo…</div>
+
+    <div id="result" class="hidden">
+      <div class="verdict">
+        <div id="badge" class="badge">—</div>
+        <div id="rec" class="rec">—</div>
+      </div>
+
+      <div class="gaugewrap">
+        <svg width="150" height="86" viewBox="0 0 150 86">
+          <path d="M12 80 A63 63 0 0 1 138 80" fill="none" stroke="#242c3a" stroke-width="14" stroke-linecap="round"/>
+          <path id="arc" d="M12 80 A63 63 0 0 1 138 80" fill="none" stroke="#25c281" stroke-width="14" stroke-linecap="round" stroke-dasharray="198" stroke-dashoffset="198"/>
+        </svg>
+        <div><div class="pct"><span id="pct">0</span><small>% IA</small></div><div class="muted" id="conf"></div></div>
+      </div>
+
+      <div class="signals">
+        <div class="sig" id="row_tab"><span class="lab">Conductual (turnos)</span><div class="bar"><i id="b_tab"></i></div><span id="v_tab" class="muted"></span></div>
+        <div class="sig"><span class="lab">Audio (síntesis)</span><div class="bar"><i id="b_audio"></i></div><span id="v_audio" class="muted"></span></div>
+        <div class="sig"><span class="lab">· WavLM</span><div class="bar"><i id="b_wavlm"></i></div><span id="v_wavlm" class="muted"></span></div>
+        <div class="sig"><span class="lab">· XLS-R-SLS</span><div class="bar"><i id="b_xlsr"></i></div><span id="v_xlsr" class="muted"></span></div>
+      </div>
+
+      <h2 style="margin-top:18px">Flujo de la llamada</h2>
+      <div id="flow" class="flow"></div>
+      <div class="leg"><span><span class="sw" style="background:var(--red)"></span>Cliente (canal 0)</span><span><span class="sw" style="background:var(--accent)"></span>Agente (canal 1)</span></div>
+
+      <div class="metrics" style="margin-top:14px">
+        <div>Duración: <b id="m_dur">—</b></div>
+        <div>Turnos: <b id="m_turns">—</b></div>
+        <div>HNR: <b id="m_hnr">—</b></div>
+        <div>Shimmer: <b id="m_shim">—</b></div>
+        <div>F0: <b id="m_f0">—</b></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+let fileBuf = null;
+
+fetch('/health').then(r=>r.json()).then(d=>{
+  $('dot').classList.add('on'); $('apistat').textContent = 'API conectada' + (d.heavy?' · modelos pesados ON':'');
+}).catch(()=>{ $('apistat').textContent='API no disponible'; });
+
+$('drop').onclick = ()=> $('file').click();
+$('drop').ondragover = e=>{e.preventDefault(); $('drop').style.borderColor='var(--accent)';};
+$('drop').ondragleave = ()=> $('drop').style.borderColor='';
+$('drop').ondrop = e=>{e.preventDefault(); $('drop').style.borderColor=''; if(e.dataTransfer.files[0]) pick(e.dataTransfer.files[0]);};
+$('file').onchange = e=>{ if(e.target.files[0]) pick(e.target.files[0]); };
+
+function pick(f){
+  $('fname').textContent = f.name;
+  $('err').textContent='';
+  const r = new FileReader();
+  r.onload = ()=>{ fileBuf = r.result; $('go').disabled=false; };
+  r.readAsArrayBuffer(f);
+}
+
+function b64(buf){
+  let bin=''; const bytes=new Uint8Array(buf);
+  for(let i=0;i<bytes.length;i++) bin+=String.fromCharCode(bytes[i]);
+  return btoa(bin);
+}
+
+function encodeWav(ab){
+  const ch=ab.numberOfChannels, sr=ab.sampleRate, n=ab.length;
+  const dv=new DataView(new ArrayBuffer(44+n*ch*2)); let p=0;
+  const ws=s=>{for(let i=0;i<s.length;i++)dv.setUint8(p++,s.charCodeAt(i));};
+  const u32=v=>{dv.setUint32(p,v,true);p+=4;}; const u16=v=>{dv.setUint16(p,v,true);p+=2;};
+  ws('RIFF');u32(36+n*ch*2);ws('WAVE');ws('fmt ');u32(16);u16(1);u16(ch);u32(sr);u32(sr*ch*2);u16(ch*2);u16(16);ws('data');u32(n*ch*2);
+  const chans=[]; for(let c=0;c<ch;c++) chans.push(ab.getChannelData(c));
+  for(let i=0;i<n;i++){ for(let c=0;c<ch;c++){ let s=Math.max(-1,Math.min(1,chans[c][i])); dv.setInt16(p,s<0?s*0x8000:s*0x7FFF,true);p+=2; } }
+  return dv.buffer;
+}
+
+async function toWav8k(arrayBuffer){
+  const AC=window.AudioContext||window.webkitAudioContext;
+  const actx=new AC();
+  const decoded=await actx.decodeAudioData(arrayBuffer.slice(0));
+  actx.close();
+  const ch=Math.min(2,decoded.numberOfChannels), sr=8000;
+  const len=Math.max(1,Math.round(decoded.duration*sr));
+  const off=new OfflineAudioContext(ch,len,sr);
+  const src=off.createBufferSource(); src.buffer=decoded; src.connect(off.destination); src.start();
+  const rendered=await off.startRendering();
+  return encodeWav(rendered);
+}
+
+async function encodeFor(buf){
+  try{ return b64(await toWav8k(buf)); }catch(e){ return b64(buf); }
+}
+
+const col = p => p>=0.7?'var(--red)': p>=0.4?'var(--amb)':'var(--grn)';
+function setbar(id,val){ const p=Math.max(0,Math.min(1,val)); $(id).style.width=(p*100)+'%'; $(id).style.background=col(p); }
+
+async function analyze(base64){
+  $('err').textContent=''; $('latency').textContent='';
+  const t0=performance.now();
+  try{
+    const res = await fetch('/detect/detailed',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({audio_base64:base64})});
+    if(!res.ok){ throw new Error((await res.json()).detail || res.status); }
+    const d = await res.json();
+    $('latency').textContent = 'Análisis: '+((performance.now()-t0)/1000).toFixed(1)+'s';
+    render(d);
+  }catch(e){ $('err').textContent='Error: '+e.message; }
+}
+
+$('go').onclick = async ()=>{
+  if(!fileBuf) return;
+  $('go').disabled=true; $('go').textContent='Analizando…';
+  await analyze(await encodeFor(fileBuf));
+  $('go').disabled=false; $('go').textContent='Analizar llamada';
+};
+
+$('tabUp').onclick=()=>{ $('tabUp').classList.add('active'); $('tabRec').classList.remove('active'); $('paneUp').classList.remove('hidden'); $('paneRec').classList.add('hidden'); };
+$('tabRec').onclick=()=>{ $('tabRec').classList.add('active'); $('tabUp').classList.remove('active'); $('paneRec').classList.remove('hidden'); $('paneUp').classList.add('hidden'); };
+
+let mr=null, recChunks=[], recTimer=null, recT0=0;
+$('recBtn').onclick = async ()=>{
+  if(mr && mr.state==='recording'){ mr.stop(); return; }
+  try{
+    const stream = await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
+    recChunks=[]; mr=new MediaRecorder(stream);
+    mr.ondataavailable=e=>recChunks.push(e.data);
+    mr.onstop=async ()=>{
+      clearInterval(recTimer); $('recdot').classList.remove('live'); $('recBtn').textContent='● Grabar';
+      stream.getTracks().forEach(t=>t.stop());
+      const blob=new Blob(recChunks,{type:mr.mimeType||'audio/webm'});
+      const buf=await blob.arrayBuffer();
+      $('recBtn').disabled=true; $('rechint').textContent='Analizando…';
+      await analyze(await encodeFor(buf));
+      $('recBtn').disabled=false; $('rechint').textContent='Graba la voz del interlocutor';
+    };
+    mr.start(); recT0=Date.now(); $('recdot').classList.add('live'); $('recBtn').textContent='■ Detener';
+    recTimer=setInterval(()=>{ const s=Math.floor((Date.now()-recT0)/1000); $('rectime').textContent=String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); },250);
+  }catch(e){ $('err').textContent='No se pudo acceder al micrófono: '+e.message; }
+};
+
+function render(d){
+  $('empty').classList.add('hidden'); $('result').classList.remove('hidden');
+  const p = d.p_final;
+  $('pct').textContent = Math.round(p*100);
+  $('thr').textContent = d.threshold;
+  $('conf').textContent = 'confianza '+(d.confidence*100).toFixed(1)+'%';
+  const off = 198 - 198*Math.max(0,Math.min(1,p));
+  const arc=$('arc'); arc.style.strokeDashoffset=off; arc.style.stroke=col(p);
+
+  const b=$('badge');
+  if(d.is_synthetic){ b.textContent='IA / SINTÉTICO'; b.style.background='rgba(255,84,112,.15)'; b.style.color='var(--red)'; }
+  else { b.textContent='HUMANO'; b.style.background='rgba(37,194,129,.15)'; b.style.color='var(--grn)'; }
+
+  const r=$('rec'), rr=d.recommendation;
+  const map={hangup:['COLGAR','var(--red)'],verify:['VERIFICAR IDENTIDAD','var(--amb)'],continue:['CONTINUAR','var(--grn)']};
+  const m=map[rr]||[rr,'var(--mut)']; r.textContent=m[0]; r.style.background='rgba(255,255,255,.06)'; r.style.color=m[1]; r.style.border='1px solid '+m[1];
+
+  const sg=d.signals||{};
+  if(d.p_tabular==null){ $('row_tab').classList.add('hidden'); }
+  else { $('row_tab').classList.remove('hidden'); setbar('b_tab',d.p_tabular); $('v_tab').textContent=(d.p_tabular*100).toFixed(0)+'%'; }
+  setbar('b_audio',d.p_audio); $('v_audio').textContent=(d.p_audio*100).toFixed(0)+'%';
+  setbar('b_wavlm',sg.wavlm||0); $('v_wavlm').textContent=((sg.wavlm||0)*100).toFixed(0)+'%';
+  setbar('b_xlsr',sg.xlsr||0); $('v_xlsr').textContent=((sg.xlsr||0)*100).toFixed(0)+'%';
+
+  $('m_dur').textContent=d.duration_s+'s'; $('m_turns').textContent=d.n_turns;
+  const bio=d.bio||{};
+  $('m_hnr').textContent=(bio.hnr!=null?bio.hnr.toFixed(1)+'dB':'—');
+  $('m_shim').textContent=(bio.shimmer_local!=null?bio.shimmer_local.toFixed(3):'—');
+  $('m_f0').textContent=(bio.f0_mean!=null?Math.round(bio.f0_mean)+'Hz':'—');
+
+  const flow=$('flow'); flow.innerHTML='';
+  const turns=d.turns||[]; const dur=d.duration_s||1;
+  turns.forEach(t=>{ const s=document.createElement('div'); s.className='seg '+(t.channel===0?'c':'a');
+    s.style.left=(100*t.start/dur)+'%'; s.style.width=Math.max(0.4,100*(t.end-t.start)/dur)+'%'; flow.appendChild(s); });
+}
+</script>
+</body>
+</html>

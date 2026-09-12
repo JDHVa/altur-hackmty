@@ -1,0 +1,13 @@
+torch
+torchaudio
+torchvision
+transformers
+soundfile
+scikit-learn
+fastapi
+uvicorn
+pydantic
+pandas
+numpy
+joblib
+imageio-ffmpeg

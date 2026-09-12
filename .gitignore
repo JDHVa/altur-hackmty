@@ -57,3 +57,5 @@ models/piper/
 # demos del equipo (voces reales + clonadas para el pitch) SI se versionan
 !wav_demos/
 !wav_demos/**
+
+hackmty26_upstream/
