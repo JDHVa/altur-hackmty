@@ -58,6 +58,14 @@ Comparar y quedarnos con la de **menor FN** (desempate por FP y ACC).
 - Y en el endpoint: `api/inference.py` (`AUDIO_WEIGHTS`) — coordinar con Jesús.
 - Revalidar con **voces nuevas** (no las del CSV) para no sobreajustar.
 
+## ✅ RESULTADO — Ganadora: A3 (= B3)
+`wavlm 0.40 · xlsr 0.50 · prosody 0.00 · flow 0.10 · thr 0.30` → **ACC 0.917, FN 2, FP 0** (24 audios).
+- **Quitar prosody (peso 0) elimina TODOS los falsos positivos** (prosody marcaba humanos limpios como IA).
+- Los 2 FN son clones casi perfectos (`clon_emilio`, `clon_grabacion_27`) que engañan a todas las señales.
+- Aplicado en `scripts/analyze_audio.py` (`WEIGHTS`).
+- **Para el endpoint (Jesús):** `AUDIO_WEIGHTS = {'wavlm':0.4,'xlsr':0.5,'flow':0.1}` + umbral ~0.30.
+- Pendiente para bajar los 2 FN: reentrenar con más clones difíciles / voice-conversion.
+
 ## Atajo opcional (automático)
 Si quieren el óptimo directo, se puede hacer un grid corriendo `eval_config` sobre muchas combos;
 avisen y lo agrego. El reparto manual sirve para entender los trade-offs.

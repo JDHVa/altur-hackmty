@@ -15,7 +15,7 @@ from features.audio import audio_score
 from features.heavy_audio import xlsr_sls_score, flow_llr_score
 from features.prosody import prosody_features
 
-WEIGHTS = {'wavlm': 0.25, 'xlsr': 0.4, 'prosody': 0.25, 'flow': 0.1}
+WEIGHTS = {'wavlm': 0.40, 'xlsr': 0.50, 'prosody': 0.0, 'flow': 0.10}
 FFMPEG = imageio_ffmpeg.get_ffmpeg_exe()
 _SAVED = os.path.join(os.path.dirname(__file__), '..', 'src', 'models', 'saved')
 try:
