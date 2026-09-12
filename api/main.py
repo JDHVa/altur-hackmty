@@ -64,3 +64,20 @@ def detect_detailed(payload: DetectRequest):
     except Exception:
         logger.exception("error interno en /detect/detailed")
         raise HTTPException(status_code=500, detail="error interno procesando el audio")
+
+
+@app.post("/detectar", response_model=DetectResponse)
+def detectar(payload: DetectRequest):
+    try:
+        return predict(payload.audio_base64)
+    except InvalidAudioError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except Exception:
+        logger.exception("error interno en /detectar")
+        raise HTTPException(status_code=500, detail="error interno procesando el audio")
+
+
+_STATIC = os.path.join(os.path.dirname(__file__), "static")
+if os.path.isdir(_STATIC):
+    from fastapi.staticfiles import StaticFiles
+    app.mount("/console", StaticFiles(directory=_STATIC, html=True), name="console")

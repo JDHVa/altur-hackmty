@@ -197,6 +197,7 @@ def predict_detailed(data, sr):
         'threshold': round(thr, 4),
         'duration_s': round(duration_s, 2),
         'n_turns': len(turns),
+        'turns': [{'channel': int(t['channel']), 'start': round(float(t['start']), 2), 'end': round(float(t['end']), 2)} for t in turns[:400]],
         'bio': bio_features(caller, sr),
         'recommendation': recommend(final, thr),
     }
