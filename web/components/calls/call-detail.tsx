@@ -25,11 +25,15 @@ export function CallDetail({ data }: { data: Data }) {
   const [notes, setNotes] = useState(call.notes ?? "");
   const [pending, start] = useTransition();
   const threshold = call.threshold ?? 0.5;
+  const signals = Object.fromEntries(
+    Object.entries({ wavlm: call.pWavlm, xlsr: call.pXlsr, flow: call.pFlow }).filter(([, v]) => v !== null && v !== undefined),
+  ) as Record<string, number>;
   const frames: ScoreFrame[] = scores.map((s) => ({
     t: s.t,
     p_audio: s.pAudio,
     p_tabular: s.pTabular,
     p_final: s.pFinal,
+    signals: Object.fromEntries(Object.entries({ wavlm: s.pWavlm, xlsr: s.pXlsr, flow: s.pFlow }).filter(([, v]) => v !== null)) as Record<string, number>,
     threshold,
     bio: { hnr: s.hnr ?? undefined, shimmer_local: s.shimmer ?? undefined, jitter_local: s.jitter ?? undefined, voiced_frac: s.voicedFrac ?? undefined },
     recommendation: recommend(s.pFinal, threshold),
@@ -86,7 +90,7 @@ export function CallDetail({ data }: { data: Data }) {
           <div className="grid gap-4 md:grid-cols-2">
             <Card>
               <CardHeader><CardTitle className="text-sm">Señales del ensemble</CardTitle></CardHeader>
-              <CardContent><SignalBreakdown pAudio={call.pAudio} pTabular={call.pTabular} /></CardContent>
+              <CardContent><SignalBreakdown pAudio={call.pAudio} pTabular={call.pTabular} signals={signals} /></CardContent>
             </Card>
             <Card>
               <CardHeader><CardTitle className="text-sm">Notas del operador</CardTitle></CardHeader>

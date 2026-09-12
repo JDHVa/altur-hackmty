@@ -184,7 +184,7 @@ export function CallRoom() {
           <Card>
             <CardHeader><CardTitle className="text-sm">Señales del ensemble</CardTitle></CardHeader>
             <CardContent>
-              <SignalBreakdown pAudio={state.final?.p_audio ?? latest?.p_audio ?? null} pTabular={state.final?.p_tabular ?? latest?.p_tabular ?? null} />
+              <SignalBreakdown pAudio={state.final?.p_audio ?? latest?.p_audio ?? null} pTabular={state.final?.p_tabular ?? latest?.p_tabular ?? null} signals={state.final?.signals ?? latest?.signals} />
             </CardContent>
           </Card>
           <Card>

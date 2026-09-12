@@ -15,6 +15,13 @@
       "when": 1789211933784,
       "tag": "0001_timescale",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789215431082,
+      "tag": "0002_heavy_signals",
+      "breakpoints": true
     }
   ]
 }

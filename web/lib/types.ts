@@ -9,10 +9,13 @@ export type BioFeatures = {
   voiced_frac: number;
 };
 
+export type AudioSignals = Partial<Record<"wavlm" | "xlsr" | "flow", number>>;
+
 export type ScoreFrame = {
   t: number;
   p_audio: number | null;
   p_audio_raw?: number;
+  signals?: AudioSignals;
   p_tabular: number | null;
   p_final: number;
   threshold: number;
@@ -27,6 +30,7 @@ export type FinalVerdict = {
   p_final: number;
   p_audio: number | null;
   p_tabular: number | null;
+  signals?: AudioSignals;
   threshold: number;
   duration_s: number;
   n_turns?: number;
