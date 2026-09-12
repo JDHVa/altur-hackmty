@@ -18,6 +18,9 @@ tqdm
 transformers            # Wav2Vec2/WavLM (modelo SOTA, tarea Camino B)
 praat-parselmouth       # jitter/shimmer/HNR (features bio, plan v4 B-B)
 imageio-ffmpeg          # ffmpeg embebido: codecs telefonicos (plan v4 B-A)
+zuko                    # normalizing flows (flow_llr) GPU
+# nemo_toolkit[asr]     # opcional: STT Parakeet-v3 (si no, fallback a faster-whisper)
+# pyannote.audio        # opcional: diarizacion de turnos (requiere token HF)
 
 # --- Senal C (semantico / LLM) ---
 faster-whisper
