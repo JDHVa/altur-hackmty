@@ -28,6 +28,8 @@ src/models/saved/*
 !src/models/saved/audio_resnet.onnx
 !src/models/saved/wavlm_head.joblib
 !src/models/saved/prob_*.joblib
+!src/models/saved/xlsr_sls.pt
+!src/models/saved/flow_llr.joblib
 
 # Dataset
 hackmty26/
