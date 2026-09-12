@@ -87,8 +87,8 @@ El roadmap oficial está en **[`PLAN.md`](PLAN.md)** y la asignación por person
   Snowflake/TigerGraph solo bonus). Hay **2 GPUs locales** → la GPU de Vultr no hace falta.
 - **Regla de oro:** el endpoint `POST /detect` con **solo la señal A** ya es entregable válido;
   todo lo demás suma pero **nunca bloquea** ese mínimo.
-- **3 caminos paralelos** (Persona 1 = A/API en CPU, Persona 2 = B/audio en RTX 4050,
-  Persona 3 = hardware "Centinela Altur" Pi 5 + GPU worker en RTX 5050). Contratos de interfaz en `EQUIPO.md`.
+- **3 caminos paralelos** (Jesús = A/API en CPU, Emilio = B/audio en RTX 4050,
+  Alonso = hardware "Centinela Altur" Pi 5 + GPU worker en RTX 5050). Contratos de interfaz en `EQUIPO.md`.
 
 ## Flujo de trabajo Git / colaboración (OBLIGATORIO)
 

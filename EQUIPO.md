@@ -37,21 +37,21 @@
 |---|---|---|
 | B0 | **Score zero-shot inmediato** (modelo HF pre-entrenado) | `audio_score` sobre canal 0 de todo el dataset **sin entrenar** → cumple contrato desde el día 1 |
 | B1 | Features SSL frozen + prosodia | `src/features/audio.py`: Wav2Vec2-XLS-R/WavLM frozen + `librosa`/`parselmouth` (F0, jitter, shimmer, RMS, respiración). Resample 8→16 kHz. Cache `.npy` |
-| B2 | **Cabeza anti-spoofing** (entrenar solo la cabeza en RTX 4050) | `notebooks/03_audio_model.ipynb`: AASIST/MLP sobre SSL frozen + augmentation es-MX→teléfono→8 kHz. Corridas pesadas → RTX 5050 (Persona 3) |
+| B2 | **Cabeza anti-spoofing** (entrenar solo la cabeza en RTX 4050) | `notebooks/03_audio_model.ipynb`: AASIST/MLP sobre SSL frozen + augmentation es-MX→teléfono→8 kHz. Corridas pesadas → RTX 5050 (Alonso) |
 | B3 | **Export ONNX INT8** | modelo en `models/`; `audio_score`/`audio_features` estables para A y C |
 
 **Prioridad:** B0 el primer día (número real para el ensemble). Luego B1→B2→B3.
-**Coordina** con Persona 3 el uso de la RTX 5050 para fine-tune/LoRA/pre-train.
+**Coordina** con Alonso el uso de la RTX 5050 para fine-tune/LoRA/pre-train.
 
 ---
 
-## 👤 Persona 3 — Camino C (Hardware "Centinela Altur") + GPU Worker
+## 👤 Persona 3 — ALONSO · Camino C (Hardware "Centinela Altur") + GPU Worker
 **Máquina:** RTX 5050 8 GB, 24 GB RAM. **Dueña del dispositivo físico y de las corridas pesadas.**
 
 ### Rol GPU worker (arranca aquí, mientras B madura)
 - Lanzar y monitorear en la RTX 5050: **fine-tune completo / LoRA**, **augmentation** (TTS→teléfono→8 kHz),
   **pre-train** con datasets externos (ASVspoof/WaveFake), **batch inference** de los 353 audios.
-- Guardar datasets externos grandes aquí (disco/VRAM), entregar checkpoints a Persona 2.
+- Guardar datasets externos grandes aquí (disco/VRAM), entregar checkpoints a Emilio.
 
 ### Rol hardware — Centinela Altur (Raspberry Pi 5 4 GB)
 Dispositivo de banca antifraude que **delata voz sintética en vivo**. Corre el **mismo pipeline** (paridad con `/detect`).

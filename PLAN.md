@@ -53,7 +53,7 @@ Hay **dos GPUs NVIDIA locales** → el entrenamiento de audio se hace en casa; l
 |---|---|---|
 | **1 — Jesús** | i7-1255U, 16 GB, Intel Iris Xe (sin CUDA), ~54 GB libres | **Camino A** (CPU): tabular, semántico, ensemble, API, orquestación. Flasheo/dev de la Pi 5. |
 | **2 — Emilio** | i5-13420H, 16 GB, **RTX 4050 6 GB**, ~152 GB libres | **Camino B** (GPU dev): extracción SSL, entrenar cabeza anti-spoofing, export ONNX. |
-| **3 — Persona 3 (QTROCIOUS2)** | i5-13450HX, **24 GB**, **RTX 5050 8 GB**, ~100 GB libres | **Camino C (hardware)** + **GPU worker**: dueña del Centinela Altur (Pi 5); su máquina lanza corridas pesadas (fine-tune/LoRA, augmentation, pre-train, batch inference) coordinando con B. |
+| **3 — Alonso (QTROCIOUS2)** | i5-13450HX, **24 GB**, **RTX 5050 8 GB**, ~100 GB libres | **Camino C (hardware)** + **GPU worker**: dueño del Centinela Altur (Pi 5); su máquina lanza corridas pesadas (fine-tune/LoRA, augmentation, pre-train, batch inference) coordinando con B. |
 
 VRAM: 6–8 GB alcanzan para **SSL frozen + cabeza** y **LoRA** (`fp16`, batches chicos); fine-tune completo
 de wav2vec2-XLS-R (~300M) va mejor en la RTX 5050. Datasets externos grandes → Máquina 2 o 3, no la 1.
