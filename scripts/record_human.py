@@ -33,7 +33,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--speaker', required=True)
     ap.add_argument('--clips', type=int, default=10)
-    ap.add_argument('--seconds', type=float, default=12.0)
+    ap.add_argument('--seconds', type=float, default=5.0)
     ap.add_argument('--sr', type=int, default=16000)
     ap.add_argument('--codec', default='g711_ulaw')
     ap.add_argument('--out', default='datasets_externos/Human_MX_8kHz')
