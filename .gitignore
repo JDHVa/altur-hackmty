@@ -26,6 +26,7 @@ venv/
 src/models/saved/*
 !src/models/saved/best_audio_resnet.pth
 !src/models/saved/audio_resnet.onnx
+!src/models/saved/wavlm_head.joblib
 
 # Dataset
 hackmty26/
