@@ -12,6 +12,7 @@ torchaudio
 torchvision
 librosa
 soundfile
+sounddevice            # grabar audio humano propio (scripts/record_human.py)
 tqdm
 transformers            # Wav2Vec2/WavLM (modelo SOTA, tarea Camino B)
 praat-parselmouth       # jitter/shimmer/HNR (features bio, plan v4 B-B)
