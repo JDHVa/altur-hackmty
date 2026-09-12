@@ -119,6 +119,12 @@ El umbral **0.5 es demasiado alto** para motores nuevos. Acciones:
 2. Reevaluar los **pesos de fusión** (el audio ahora está en otra escala que el ResNet viejo).
 3. Warmup de WavLM al arrancar la API (carga fría ~12s).
 
+### Experimentos que NO mejoraron (probados, descartados)
+El modelo **150 humanos FLEURS + Edge+gTTS** (Piper held-out **AUC 0.979**) es el punto óptimo:
+- **Augmentation multi-códec** (g711 u/a-law + opus por clip): Piper@0.5 15→40% pero **AUC 0.979→0.939** y emilio 0.073→0.325 (peor margen humano). El dataset ya era diverso en canal.
+- **Más humanos (300 FLEURS):** AUC 0.979→0.967, sin ganancia clara; humanos siguen 100%.
+→ Conclusión: no sobre-entrenar. El lever real para motores nuevos sigue siendo el **umbral (~0.09)**, no más datos/canales.
+
 ### Pendiente B (mejora continua)
 - Subir detección de motores nuevos a umbral 0.5 (más motores en entreno / recalibración).
 - **B-E parte 2:** ONNX de WavLM+cabeza para la Pi (Camino C).
