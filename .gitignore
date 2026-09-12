@@ -51,3 +51,7 @@ models/piper/
 /ref_*.wav
 /voz_clonada*.wav
 /*_clon*.wav
+
+# demos del equipo (voces reales + clonadas para el pitch) SI se versionan
+!wav_demos/
+!wav_demos/**
