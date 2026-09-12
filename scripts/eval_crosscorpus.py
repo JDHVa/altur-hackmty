@@ -9,8 +9,8 @@ from sklearn.metrics import roc_auc_score, roc_curve
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 from features.audio import audio_score
 
-HUMAN_DIR = 'datasets_externos/Human_MX_8kHz'
-SYNTH_DIR = 'datasets_externos/Synthetic_MX_8kHz'
+HUMAN_DIRS = ['datasets_externos/Human_MX_8kHz', 'datasets_externos/Human_ES_8kHz']
+SYNTH_DIRS = ['datasets_externos/Synthetic_MX_8kHz']
 
 
 def load(f):
@@ -19,8 +19,8 @@ def load(f):
 
 
 def main():
-    hum = sorted(glob.glob(os.path.join(HUMAN_DIR, '*.wav')))
-    syn = sorted(glob.glob(os.path.join(SYNTH_DIR, '*.wav')))
+    hum = sorted([f for d in HUMAN_DIRS for f in glob.glob(os.path.join(d, '*.wav'))])
+    syn = sorted([f for d in SYNTH_DIRS for f in glob.glob(os.path.join(d, '*.wav'))])
     if not hum or not syn:
         print('Faltan datos. Humanos:', len(hum), 'Sinteticos:', len(syn))
         return
