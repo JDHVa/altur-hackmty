@@ -3,7 +3,6 @@ import os
 import torch
 import torchaudio
 import numpy as np
-import librosa
 import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -61,22 +60,40 @@ def audio_features(caller_wave: np.ndarray, sr: int) -> dict:
     if caller_wave.ndim > 1:
         caller_wave = caller_wave[0]
 
-    rms = librosa.feature.rms(y=caller_wave)[0]
-    zcr = librosa.feature.zero_crossing_rate(caller_wave)[0]
-    spectral_centroid = librosa.feature.spectral_centroid(y=caller_wave, sr=sr)[0]
+    wave = torch.from_numpy(np.ascontiguousarray(caller_wave)).float()
 
-    f0, voiced_flag, voiced_probs = librosa.pyin(caller_wave, fmin=librosa.note_to_hz('C2'), fmax=librosa.note_to_hz('C7'), sr=sr)
+    if sr != 16000:
+        wave = torchaudio.transforms.Resample(orig_freq=sr, new_freq=16000)(wave.unsqueeze(0)).squeeze(0)
+    sr = 16000
 
-    valid_f0 = f0[~np.isnan(f0)]
+    frame_len, hop = 400, 160
+    n = 1 + max(0, (wave.shape[0] - frame_len) // hop)
+    if n < 1:
+        n = 1
+    frames = torch.stack([wave[i * hop:i * hop + frame_len] for i in range(n)]) if wave.shape[0] >= frame_len else wave.unsqueeze(0)
+
+    rms = torch.sqrt(torch.mean(frames ** 2, dim=1) + 1e-10)
+    signs = torch.sign(frames)
+    zcr = torch.mean(torch.abs(signs[:, 1:] - signs[:, :-1]), dim=1) / 2.0
+
+    n_fft = 1024
+    spec = torchaudio.transforms.Spectrogram(n_fft=n_fft, hop_length=512)(wave)
+    freqs = torch.linspace(0, sr / 2, spec.shape[0]).unsqueeze(1)
+    mag_sum = torch.sum(spec, dim=0) + 1e-10
+    centroid = torch.sum(freqs * spec, dim=0) / mag_sum
+
+    f0 = torchaudio.functional.detect_pitch_frequency(wave, sr)
+    voiced = (f0 >= 70) & (f0 <= 400)
+    valid_f0 = f0[voiced]
 
     features = {
-        'rms_mean': float(np.mean(rms)),
-        'rms_std': float(np.std(rms)),
-        'zcr_mean': float(np.mean(zcr)),
-        'spectral_centroid_mean': float(np.mean(spectral_centroid)),
-        'f0_mean': float(np.mean(valid_f0)) if len(valid_f0) > 0 else 0.0,
-        'f0_std': float(np.std(valid_f0)) if len(valid_f0) > 0 else 0.0,
-        'voiced_ratio': float(np.sum(voiced_flag) / len(voiced_flag)) if len(voiced_flag) > 0 else 0.0
+        'rms_mean': float(rms.mean()),
+        'rms_std': float(rms.std()),
+        'zcr_mean': float(zcr.mean()),
+        'spectral_centroid_mean': float(centroid.mean()),
+        'f0_mean': float(valid_f0.mean()) if valid_f0.numel() > 0 else 0.0,
+        'f0_std': float(valid_f0.std()) if valid_f0.numel() > 1 else 0.0,
+        'voiced_ratio': float(voiced.float().mean()) if f0.numel() > 0 else 0.0
     }
 
     return features
