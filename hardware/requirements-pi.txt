@@ -1,0 +1,10 @@
+rpi-lgpio
+luma.led_matrix
+luma.lcd
+Pillow
+spidev
+sounddevice
+soundfile
+numpy
+websockets
+requests
