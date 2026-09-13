@@ -1,63 +1,75 @@
 # Centinela Altur — HackMTY 2026
 
-Detección de voz sintética en llamadas bancarias (es-MX): ensemble conversacional (A) + anti-spoofing acústico (B),
-expuesto como `POST /detect` y como una consola web en tiempo real para el operador.
+> **La carpeta principal del proyecto es [`altur_100/`](altur_100/).**
+> Ahí vive el sistema final: el detector de voz humana vs. IA para llamadas Altur,
+> autocontenido y desplegado. Todo lo demás en el repo es contexto, datos o piezas de apoyo.
 
-## Correr todo en local
+Detección de **voz sintética (IA) vs. humano** en llamadas telefónicas a un banco (español mexicano),
+expuesta como `POST /detect` y como una consola web en tiempo real.
 
-```bash
-# 1. API (FastAPI) — modelos en src/models/saved, audio en hackmty26/audio
-pip install -r requirements.txt
-python -m uvicorn api.main:app --port 8000
+---
 
-# 2. Web (Next 16 + Tiger Data)
-cd web
-cp .env.example .env        # DATABASE_URL de Tiger Cloud + BETTER_AUTH_SECRET
-pnpm install
-pnpm db:migrate             # crea tablas + hypertable call_scores
-pnpm dev                    # http://localhost:3000
+## `altur_100/` — el sistema principal
+
+Modelo **A+B**: fusiona señal **conversacional** (timing de turnos por VAD) + señal de **audio**
+(XLS-R, WavLM, flow) con un clasificador **HistGradientBoosting**.
+
+- Accuracy en Altur: **~99% (CV 5-fold)**, 100% en el split de validación oficial.
+- Enfocado 100% en la distribución de Altur (el juez evalúa con datos similares).
+
+### Estructura de `altur_100/`
+```
+altur_100/
+├── pipeline.py        extracción de features + predict / explain / audio_only
+├── serve.py           FastAPI local (endpoints + consola web + push al Pi)
+├── modal_serve.py     despliegue GPU en Modal
+├── train.py           reentrena el modelo A+B desde hackmty26/
+├── static/index.html  consola web (subir · grabar · en vivo, tema claro/oscuro)
+├── hf_space/          consola para Hugging Face Space (apunta al backend de Modal)
+├── vultr/             despliegue alternativo (GPU siempre encendida)
+└── src/               código + pesos del modelo (features/, models/, models/saved/)
 ```
 
-## Web (`web/`)
+### Correr en local
+```bash
+cd altur_100
+python -m uvicorn serve:app --port 8010
+# consola:  http://127.0.0.1:8010/console/
+```
 
-| Ruta | Qué hace |
+### Endpoints
+| Endpoint | Qué hace |
 |---|---|
-| `/login`, `/register` | Better Auth (email + password; Google opcional). Roles `operator` / `admin`. |
-| `/` | Panel: KPIs de 24 h, llamadas por hora (`time_bucket` de TimescaleDB), recientes. |
-| `/call/new` | **Sala de llamada.** Izquierda: simulación del que marca (micrófono en vivo o llamada real del dataset). Derecha: consola del operador con gauge de prob. IA, semáforo *Continuar / Verificar / Colgar*, timeline del score, señales A/B y biomarcadores. |
-| `/calls`, `/calls/[id]` | Historial y detalle (score en el tiempo, notas, export JSON, audio si fue mic). |
-| `/settings` | Cuenta, estado de la API, tema. |
+| `POST /detect` | Contrato del reto: `{audio_base64}` → `{is_synthetic, confidence}`. |
+| `POST /detect/detailed` | Igual + `p_final`, `p_audio`, `signals`, `turns`, `duration_s`. |
+| `POST /detect/audio` | Solo-audio, rápido (para el modo **en vivo**). |
+| `POST /explain` | Transcribe (Whisper) + razones + score sintético por segmento. |
+| `GET /console/` | Consola web del operador. |
 
-Stack: Next.js 16 (App Router), React 19, Tailwind v4, shadcn/ui, Motion, Recharts, Drizzle ORM, Better Auth,
-**Tiger Data** (Postgres + TimescaleDB: `call_scores` es hypertable con continuous aggregate por hora).
+### En línea (desplegado)
+- **Backend GPU (Modal):** `https://emilioyt929394--altur-100-detect-web.modal.run`
+- **Consola pública (HF Space):** `https://elelimios-centinela-altur.static.hf.space`
 
-## API (`api/`)
+Reentrenar: `python altur_100/train.py` (usa `hackmty26/`).
 
-| Endpoint | Descripción |
-|---|---|
-| `POST /detect` | Contrato oficial del reto: `{audio_base64}` → `{is_synthetic, confidence}`. |
-| `POST /detect/detailed` | Igual pero con `p_final`, `p_tabular`, `p_audio`, `threshold`, `bio`, `recommendation`. |
-| `WS /ws/call?source=mic\|dataset&anon_id=&speed=` | Scoring por ventana en vivo. `mic`: el cliente manda PCM int16 8 kHz; `dataset`: el servidor reproduce el WAV estéreo. Emite `frame` cada ~1 s y `final` al colgar. |
-| `GET /dataset/calls`, `/dataset/calls/{id}/audio`, `/dataset/calls/{id}/label` | Llamadas del dataset para el modo simulación (label oculta hasta "Revelar"). |
+---
 
-### Señales de audio (Camino B) y flags
+## `hardware/` — Centinela físico (opcional, solo local)
 
-`p_audio` es el promedio ponderado de las señales disponibles: **XLS-R-SLS 0.5 · WavLM 0.3 · Flow-LLR 0.2**
-(las que fallen o no estén instaladas se omiten). Cada respuesta trae `signals: {wavlm, xlsr, flow}`.
+Raspberry Pi 5 con pantalla TFT (ILI9341) + matriz LED + bocina que **refleja el veredicto**
+del sistema web. La compu hace toda la IA y le manda el resultado al Pi por WiFi.
 
-| Variable | Default | Efecto |
-|---|---|---|
-| `ALTUR_HEAVY` | `1` | `0` desactiva XLS-R y Flow-LLR (solo WavLM). Útil en CPU sin los pesos. |
-| `ALTUR_HEAVY_XLSR` / `ALTUR_HEAVY_FLOW` | `1` | Apagar una señal pesada en particular. |
-| `ALTUR_HEAVY_EVERY_S` | `4` | En `/ws/call`, cada cuántos segundos de llamada se recalculan las pesadas (WavLM va en cada tick). |
-| `ALTUR_WARMUP` | `1` | Carga modelos en background al arrancar (XLS-R frío ~30–60 s). |
-| `ALTUR_CORS_ORIGINS` | `http://localhost:3000` | Orígenes permitidos (separados por coma). |
+- `centinela_display.py` (en el Pi): recibe `{state}` y muestra **HUMANO** (morado) / **INTELIGENCIA ARTIFICIAL** (rojo) + sonido.
+- El servidor local prende el Pi si defines `ALTUR_PI_URL=http://<IP_PI>:8080/state`.
+- Es opcional y no intrusivo: sin Pi, todo funciona igual (la versión en línea no se toca).
 
-Requiere `zuko` y los pesos en `src/models/saved/` (`xlsr_sls.pt`, `flow_llr.joblib`); XLS-R 300M se descarga de HF la primera vez.
-En GPU (Emilio/Alonso) correr con todo activo; en CPU: `ALTUR_HEAVY=0 python -m uvicorn api.main:app --port 8000`.
+Ver [`hardware/README.md`](hardware/README.md) para los comandos exactos.
 
-Semáforo del operador sobre `p` (prob. de sintético): `p < 0.35` continuar · `0.35 ≤ p < umbral` verificar · `p ≥ umbral` colgar.
-El umbral es el calibrado por EER del ensemble (`src/models/saved/ensemble.pkl`).
+---
 
-Documentación técnica de tecnologías: [`docs/DOCUMENTACION_TECNICA.md`](docs/DOCUMENTACION_TECNICA.md).
-Ver [`CLAUDE.md`](CLAUDE.md), [`PLAN.md`](PLAN.md) y [`EQUIPO.md`](EQUIPO.md) para el contexto del reto y la división de trabajo.
+## Otras carpetas (contexto / apoyo)
+- `hackmty26/` — dataset del reto (audio, manifest, turns).
+- `api/`, `web/` — versión anterior (FastAPI + consola Next.js); histórica.
+- `src/`, `scripts/`, `planes/`, `docs/` — features, entrenamiento, planeación y documentación.
+
+Contexto del reto y división de trabajo: [`CLAUDE.md`](CLAUDE.md), [`PLAN.md`](PLAN.md), [`EQUIPO.md`](EQUIPO.md).
