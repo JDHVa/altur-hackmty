@@ -94,6 +94,22 @@ def predict(data, sr):
     }
 
 
+def audio_only(data, sr):
+    if data.ndim == 1:
+        data = data[:, None]
+    caller = data[:, 0]
+    sig = audio_signals(caller, sr)
+    w = {'wavlm': 0.4, 'xlsr': 0.6}
+    live = {k: v for k, v in sig.items() if v != 0.5}
+    p = sum(live[k] * w[k] for k in live) / sum(w[k] for k in live) if live else 0.5
+    return {
+        'p_synthetic': round(float(p), 4),
+        'is_synthetic': bool(p >= 0.5),
+        'signals': {k: round(v, 4) for k, v in sig.items()},
+        'duration_s': round(len(caller) / sr if sr else 0.0, 2),
+    }
+
+
 def _reasons(feats):
     st = _stats()
     out = []

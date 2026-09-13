@@ -39,7 +39,7 @@ def web():
     os.environ["HF_HOME"] = "/cache"
     sys.path.insert(0, "/app/altur_100")
     sys.path.insert(0, "/app/altur_100/src")
-    from pipeline import predict, explain
+    from pipeline import predict, explain, audio_only
 
     try:
         predict(np.zeros((16000 * 3, 2), dtype="float32"), 16000)
@@ -83,6 +83,14 @@ def web():
         except (binascii.Error, ValueError, RuntimeError):
             raise HTTPException(status_code=400, detail="audio invalido")
         return predict(data, sr)
+
+    @api.post("/detect/audio")
+    def detect_audio(r: Req):
+        try:
+            data, sr = decode(r.audio_base64)
+        except (binascii.Error, ValueError, RuntimeError):
+            raise HTTPException(status_code=400, detail="audio invalido")
+        return audio_only(data, sr)
 
     @api.post("/explain")
     def explain_route(r: Req):

@@ -11,7 +11,7 @@ from pydantic import BaseModel
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-from pipeline import predict, explain
+from pipeline import predict, explain, audio_only
 
 app = FastAPI(title='Altur 100 - A+B')
 
@@ -54,6 +54,15 @@ def detect_detailed(payload: DetectRequest):
     except (binascii.Error, ValueError, RuntimeError):
         raise HTTPException(status_code=400, detail='audio invalido')
     return predict(data, sr)
+
+
+@app.post('/detect/audio')
+def detect_audio(payload: DetectRequest):
+    try:
+        data, sr = decode(payload.audio_base64)
+    except (binascii.Error, ValueError, RuntimeError):
+        raise HTTPException(status_code=400, detail='audio invalido')
+    return audio_only(data, sr)
 
 
 @app.post('/explain')
