@@ -23,7 +23,7 @@ try:
     from luma.lcd.device import ili9341
     from luma.led_matrix.device import max7219
     serial = spi(port=0, device=0, gpio_DC=24, gpio_RST=25, bus_speed_hz=HW.BUS_SPEED)
-    tft = ili9341(serial, width=240, height=320, rotate=TFT_ROTATE)
+    tft = ili9341(serial, width=320, height=240, rotate=TFT_ROTATE)
     mserial = spi(port=0, device=1, gpio=noop())
     matrix = max7219(mserial, cascaded=1, block_orientation=0, rotate=MATRIX_ROTATE)
     matrix.contrast(30)
