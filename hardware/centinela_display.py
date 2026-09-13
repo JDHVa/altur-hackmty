@@ -14,16 +14,20 @@ S = {'idle': 0, 'listening': 1, 'human': 2, 'bot': 3}
 _last = time.time()
 _lock = threading.Lock()
 
-TFT_ROTATE = int(os.environ.get('ALTUR_TFT_ROTATE', '1'))
+TFT_ROTATE = int(os.environ.get('ALTUR_TFT_ROTATE', '3'))
+MATRIX_ROTATE = int(os.environ.get('ALTUR_MATRIX_ROTATE', '2'))
 
 try:
     import centinela as HW
-    from luma.core.interface.serial import spi
+    from luma.core.interface.serial import spi, noop
     from luma.lcd.device import ili9341
+    from luma.led_matrix.device import max7219
     serial = spi(port=0, device=0, gpio_DC=24, gpio_RST=25, bus_speed_hz=HW.BUS_SPEED)
     tft = ili9341(serial, width=320, height=240, rotate=TFT_ROTATE)
-    matrix = HW.init_matrix()
-    print(f'Hardware Centinela OK (TFT {tft.width}x{tft.height} rotate={TFT_ROTATE} + matriz)')
+    mserial = spi(port=0, device=1, gpio=noop())
+    matrix = max7219(mserial, cascaded=1, block_orientation=0, rotate=MATRIX_ROTATE)
+    matrix.contrast(30)
+    print(f'Hardware OK (TFT {tft.width}x{tft.height} rotate={TFT_ROTATE}, matriz rotate={MATRIX_ROTATE})')
 except Exception as e:
     print('Sin hardware fisico (modo consola):', str(e)[:100])
 
