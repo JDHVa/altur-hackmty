@@ -15,7 +15,7 @@ _last = time.time()
 _lock = threading.Lock()
 
 TFT_ROTATE = int(os.environ.get('ALTUR_TFT_ROTATE', '1'))
-MATRIX_ROTATE = int(os.environ.get('ALTUR_MATRIX_ROTATE', '2'))
+MATRIX_ROTATE = int(os.environ.get('ALTUR_MATRIX_ROTATE', '0'))
 
 try:
     import centinela as HW
