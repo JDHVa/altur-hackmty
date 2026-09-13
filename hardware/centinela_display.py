@@ -2,6 +2,7 @@ import os
 import json
 import time
 import threading
+import numpy as np
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 PORT = int(os.environ.get('ALTUR_DISPLAY_PORT', '8080'))
@@ -36,19 +37,37 @@ TITLE = {'human': ['HUMANO'], 'bot': ['INTELIGENCIA', 'ARTIFICIAL'], 'listening'
 _F = {}
 
 SOUND = os.environ.get('ALTUR_SOUND', '1') != '0'
-SEQ = {'human': [(523, 0.14), (659, 0.14), (784, 0.22)], 'bot': [(220, 0.35), (160, 0.4)], 'listening': [(880, 0.1)]}
+AUDIO_OUT = os.environ.get('ALTUR_AUDIO_OUT', 'plughw:2,0')
+VOL = float(os.environ.get('ALTUR_VOL', '0.35'))
+SEQ = {'human': [(523, 0.16), (659, 0.16), (784, 0.26)], 'bot': [(220, 0.38), (160, 0.42)], 'listening': [(880, 0.1)]}
 _prev_state = None
+_snd_warned = False
+
+
+def _play_seq(seq):
+    global _snd_warned
+    import sounddevice as sd
+    sr = 16000
+    for f, dur in seq:
+        t = np.linspace(0, dur, int(sr * dur), False)
+        tone = (VOL * np.sin(2 * np.pi * f * t)).astype(np.float32)
+        try:
+            sd.play(tone, samplerate=sr, device=AUDIO_OUT); sd.wait()
+        except Exception as e:
+            if not _snd_warned:
+                print(f'audio device "{AUDIO_OUT}" fallo ({str(e)[:60]}), usando default', flush=True)
+                _snd_warned = True
+            try:
+                sd.play(tone, samplerate=sr); sd.wait()
+            except Exception:
+                pass
+        time.sleep(0.04)
 
 
 def play_sound(state):
-    if not (SOUND and HW) or state not in SEQ:
+    if not SOUND or state not in SEQ:
         return
-    def go():
-        try:
-            HW.play_sequence(SEQ[state])
-        except Exception:
-            pass
-    threading.Thread(target=go, daemon=True).start()
+    threading.Thread(target=lambda: _play_seq(SEQ[state]), daemon=True).start()
 
 if HW:
     from PIL import Image, ImageDraw, ImageFont
