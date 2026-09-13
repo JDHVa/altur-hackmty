@@ -69,7 +69,7 @@ def xlsr_sls_score(caller_wave: np.ndarray, sr: int) -> float:
         fe, xlsr, sls = _load_xlsr()
         w = _to_16k(caller_wave, sr)
         probs = []
-        for ch in _chunks6(w):
+        for ch in _chunks6(w, maxc=3):
             inp = fe(ch.numpy(), sampling_rate=_SR, return_tensors='pt').input_values.to(_DEVICE)
             hs = xlsr(inp).hidden_states
             feat = torch.stack([h.squeeze(0).mean(0) for h in hs]).unsqueeze(0)
@@ -89,7 +89,7 @@ def flow_llr_score(caller_wave: np.ndarray, sr: int) -> float:
             _flow = joblib.load(os.path.join(_SAVED, 'flow_llr.joblib'))
         w = _to_16k(caller_wave, sr)
         probs = []
-        for ch in _chunks6(w):
+        for ch in _chunks6(w, maxc=3):
             v = embed(ch.numpy(), _SR).reshape(1, -1)
             probs.append(float(_flow.predict_proba(v)[0, 1]))
         return float(np.mean(probs))

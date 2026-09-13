@@ -10,7 +10,7 @@ if SRC not in sys.path:
 
 from features.conversational import extract_features_from_turns, turns_from_audio
 from features.audio import audio_score
-from features.heavy_audio import xlsr_sls_score, flow_llr_score
+from features.heavy_audio import xlsr_sls_score
 
 MODEL_PATH = os.path.join(SRC, 'models', 'saved', 'altur_ab.joblib')
 _AB = None
@@ -27,7 +27,6 @@ def audio_signals(caller, sr):
     return {
         'wavlm': float(audio_score(caller, sr)),
         'xlsr': float(xlsr_sls_score(caller, sr)),
-        'flow': float(flow_llr_score(caller, sr)),
     }
 
 
@@ -39,7 +38,6 @@ def feature_vector(caller, agent, sr):
     sig = audio_signals(caller, sr)
     feats['wavlm'] = sig['wavlm']
     feats['xlsr'] = sig['xlsr']
-    feats['flow'] = sig['flow']
     x = np.array([[float(feats.get(k, 0.0)) for k in ab['features']]])
     return x, sig, turns
 
@@ -54,7 +52,7 @@ def predict(data, sr):
     p = float(ab['model'].predict_proba(x)[0, 1])
     is_synth = bool(p >= 0.5)
     rec = 'hangup' if p >= 0.5 else ('verify' if p >= 0.35 else 'continue')
-    w = {'wavlm': 0.33, 'xlsr': 0.45, 'flow': 0.22}
+    w = {'wavlm': 0.4, 'xlsr': 0.6}
     live = {k: v for k, v in sig.items() if v != 0.5}
     p_audio = sum(live[k] * w[k] for k in live) / sum(w[k] for k in live) if live else 0.5
     duration_s = len(caller) / sr if sr else 0.0

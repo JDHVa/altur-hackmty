@@ -12,7 +12,7 @@ sys.path.insert(0, SRC)
 
 from features.conversational import extract_features_from_turns, turns_from_audio
 from features.audio import audio_score
-from features.heavy_audio import xlsr_sls_score, flow_llr_score
+from features.heavy_audio import xlsr_sls_score
 from sklearn.metrics import roc_auc_score, accuracy_score
 from sklearn.model_selection import StratifiedKFold, cross_val_predict
 from sklearn.ensemble import HistGradientBoostingClassifier
@@ -36,7 +36,6 @@ def build():
         f = extract_features_from_turns(turns, dur)
         f['wavlm'] = float(audio_score(caller, sr))
         f['xlsr'] = float(xlsr_sls_score(caller, sr))
-        f['flow'] = float(flow_llr_score(caller, sr))
         f['anon_id'] = aid
         f['y'] = 1 if r['label'] == 'synthetic' else 0
         f['split'] = r['split']
