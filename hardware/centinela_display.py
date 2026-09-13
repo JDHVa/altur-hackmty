@@ -14,11 +14,16 @@ S = {'idle': 0, 'listening': 1, 'human': 2, 'bot': 3}
 _last = time.time()
 _lock = threading.Lock()
 
+TFT_ROTATE = int(os.environ.get('ALTUR_TFT_ROTATE', '0'))
+
 try:
     import centinela as HW
-    tft = HW.init_tft()
+    from luma.core.interface.serial import spi
+    from luma.lcd.device import ili9341
+    serial = spi(port=0, device=0, gpio_DC=24, gpio_RST=25, bus_speed_hz=HW.BUS_SPEED)
+    tft = ili9341(serial, width=240, height=320, rotate=TFT_ROTATE)
     matrix = HW.init_matrix()
-    print('Hardware Centinela OK (TFT + matriz)')
+    print(f'Hardware Centinela OK (TFT vertical {tft.width}x{tft.height} rotate={TFT_ROTATE} + matriz)')
 except Exception as e:
     print('Sin hardware fisico (modo consola):', str(e)[:100])
 
@@ -35,30 +40,30 @@ if HW:
             return ImageFont.truetype(p, sz)
         except Exception:
             return ImageFont.load_default()
-    _F = {'title': _font(30), 'sub': _font(16, False), 'small': _font(12, False)}
+    _F = {'title': _font(26), 'sub': _font(17, False), 'small': _font(13, False)}
 
 
 def render_tft_custom(state, conf, label):
-    W, H = HW.TFT_W, HW.TFT_H
+    W, H = tft.width, tft.height
     img = Image.new('RGB', (W, H), (12, 12, 20))
     d = ImageDraw.Draw(img)
-    d.text((12, 8), 'CENTINELA ALTUR', font=_F['small'], fill=(95, 95, 125))
-    d.line([(12, 27), (W - 12, 27)], fill=(40, 40, 60), width=1)
+    d.text((10, 12), 'CENTINELA ALTUR', font=_F['small'], fill=(95, 95, 125))
+    d.line([(10, 34), (W - 10, 34)], fill=(40, 40, 60), width=1)
     col = COL.get(state, (120, 120, 140))
     lines = TITLE.get(state, ['EN ESPERA'])
-    y = 58 if len(lines) > 1 else 74
+    y = int(H * 0.34) - len(lines) * 20
     for ln in lines:
         bb = d.textbbox((0, 0), ln, font=_F['title'])
         d.text(((W - (bb[2] - bb[0])) // 2, y), ln, font=_F['title'], fill=col)
-        y += 38
+        y += 40
     if state in ('human', 'bot'):
-        by = y + 10
-        d.rectangle([(20, by), (W - 20, by + 20)], fill=(30, 30, 45))
+        by = y + 24
+        d.rectangle([(20, by), (W - 20, by + 22)], fill=(30, 30, 45))
         bw = int((W - 44) * max(0.0, min(1.0, conf)))
-        d.rectangle([(22, by + 2), (22 + bw, by + 18)], fill=col)
+        d.rectangle([(22, by + 2), (22 + bw, by + 20)], fill=col)
         pct = f'{conf * 100:.0f}%'
         bb = d.textbbox((0, 0), pct, font=_F['sub'])
-        d.text(((W - (bb[2] - bb[0])) // 2, by + 26), pct, font=_F['sub'], fill=(230, 230, 235))
+        d.text(((W - (bb[2] - bb[0])) // 2, by + 30), pct, font=_F['sub'], fill=(230, 230, 235))
     with HW.spi_lock:
         tft.display(img)
 
