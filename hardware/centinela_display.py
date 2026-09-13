@@ -14,7 +14,7 @@ S = {'idle': 0, 'listening': 1, 'human': 2, 'bot': 3}
 _last = time.time()
 _lock = threading.Lock()
 
-TFT_ROTATE = int(os.environ.get('ALTUR_TFT_ROTATE', '0'))
+TFT_ROTATE = int(os.environ.get('ALTUR_TFT_ROTATE', '1'))
 MATRIX_ROTATE = int(os.environ.get('ALTUR_MATRIX_ROTATE', '2'))
 
 try:
