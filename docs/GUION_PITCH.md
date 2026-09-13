@@ -1,4 +1,4 @@
-# Centinela Altur — Guiones de presentación en prosa
+# Centinel Altur — Guiones de presentación en prosa
 
 > Dos guiones. El **Plan 1** (5–10 min) está pensado para que el juez pruebe el sistema mientras hablamos. El **Plan 2** (15–20 min) explica todo el proyecto y el porqué de cada decisión. Ambos están escritos tal cual se dicen; entre corchetes van indicaciones de escena, no se leen.
 
@@ -12,7 +12,7 @@
 
 Imagine que de pronto una inteligencia artificial clona su voz. Con diez segundos de un audio de WhatsApp es suficiente. Ahora imagine qué podría hacer alguien con esa voz en un banco: reportar una tarjeta, pedir un cambio de teléfono, autorizar una transferencia. Da miedo, ¿verdad? Pues eso pasa todos los días y se hace en minutos. Y el problema de fondo es que el operador que contesta no tiene ninguna forma de saber si del otro lado hay una persona o hay una máquina.
 
-Nosotros somos Centinela Altur y construimos justo eso: un sistema que escucha la llamada y le dice al banco, con una probabilidad, si quien habla es humano o es una voz sintética. Y en vez de contárselo, preferimos que usted lo pruebe.
+Nosotros somos Centinel Altur y construimos justo eso: un sistema que escucha la llamada y le dice al banco, con una probabilidad, si quien habla es humano o es una voz sintética. Y en vez de contárselo, preferimos que usted lo pruebe.
 
 ## Primera prueba: la voz real (1 minuto)
 
@@ -54,9 +54,9 @@ Y esto que está probando no es un notebook. Es un endpoint en producción, con 
 
 ## Cierre (20 segundos)
 
-Con Centinela Altur logramos algo que nos parece increíble: sin conocer la voz de alguien, podemos saber si es una persona real o una clonación hecha con inteligencia artificial. Y lo puede probar cualquiera, ahora mismo, desde un navegador.
+Con Centinel Altur logramos algo que nos parece increíble: sin conocer la voz de alguien, podemos saber si es una persona real o una clonación hecha con inteligencia artificial. Y lo puede probar cualquiera, ahora mismo, desde un navegador.
 
-Centinela Altur: detecta la voz que no existe. Gracias.
+Centinel Altur: detecta la voz que no existe. Gracias.
 
 [Si sobra tiempo: preguntas. Si el juez quiere probar más audios, se le deja la consola.]
 
@@ -68,7 +68,7 @@ Centinela Altur: detecta la voz que no existe. Gracias.
 
 ## 1. El problema y por qué importa (2 minutos)
 
-Buenas. Somos Centinela Altur y vamos a contarles cómo detectamos voces sintéticas en llamadas bancarias, y sobre todo por qué tomamos cada decisión.
+Buenas. Somos Centinel Altur y vamos a contarles cómo detectamos voces sintéticas en llamadas bancarias, y sobre todo por qué tomamos cada decisión.
 
 Empiezo por el problema. Clonar una voz hoy cuesta minutos y unos segundos de audio. Con esa voz, un modelo de lenguaje y un sistema de texto a voz, cualquiera puede montar un bot que marque a un banco, se identifique como cliente, conteste preguntas de seguridad y no se canse nunca. Los sistemas tradicionales de verificación por voz están hechos para responder "¿es esta persona?", y ese es justo el punto débil: si la voz es un clon, la respuesta es "sí". La pregunta que hay que hacer es otra: "¿hay una persona aquí?".
 
@@ -134,6 +134,6 @@ Además, para el caso de uso real construimos una consola de operador en tiempo 
 
 Resumo en una frase lo que hicimos: miramos cómo se comporta la llamada y cómo suena la voz, fusionamos las dos cosas con un modelo que produce una probabilidad honesta, y lo pusimos en producción con el contrato del reto. Cada decisión, congelar los modelos, usar señales conversacionales, respetar el canal telefónico, validar tres veces, tiene la misma razón detrás: que funcione con voces que nunca hemos escuchado, porque ese es el ataque real.
 
-Con Centinela Altur logramos algo que nos sigue pareciendo increíble: sin conocer la voz de alguien, podemos saber si es una persona real o una clonación hecha con inteligencia artificial.
+Con Centinel Altur logramos algo que nos sigue pareciendo increíble: sin conocer la voz de alguien, podemos saber si es una persona real o una clonación hecha con inteligencia artificial.
 
-Centinela Altur: detecta la voz que no existe. Muchas gracias. Quedamos para preguntas y, si quieren, para que prueben el sistema con su propia voz.
+Centinel Altur: detecta la voz que no existe. Muchas gracias. Quedamos para preguntas y, si quieren, para que prueben el sistema con su propia voz.

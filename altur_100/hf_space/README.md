@@ -1,5 +1,5 @@
 ---
-title: Centinela Altur
+title: Centinel Altur
 emoji: 🛡️
 colorFrom: indigo
 colorTo: red
@@ -7,7 +7,7 @@ sdk: static
 pinned: false
 ---
 
-# Centinela Altur — consola
+# Centinel Altur — consola
 
 Front-end estático del detector humano/IA. Le pega al backend GPU en Modal.
 

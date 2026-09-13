@@ -1,4 +1,4 @@
-# Centinela Altur — Presentación de tecnologías (texto para Canva)
+# Centinel Altur — Presentación de tecnologías (texto para Canva)
 
 > 12 slides. Cada slide: título · 3–5 bullets cortos · una línea de "qué decir".
 > Sugerencia visual: fondo `#0B0F14`, acento cian `#22D3EE`, semáforo verde `#34D399` / ámbar `#FBBF24` / rojo `#F43F5E`, tipografía Geist o Inter.
@@ -6,7 +6,7 @@
 ---
 
 ## Slide 1 — Portada
-**Centinela Altur**
+**Centinel Altur**
 Detección de voz sintética en llamadas bancarias, en tiempo real.
 HackMTY 2026 · Altur Challenge · Jesús · Emilio · Alonso
 
@@ -123,7 +123,7 @@ Caller (mic / dataset) ─▶ Consola web (Next.js) ─▶ API (FastAPI, WebSock
 ---
 
 ## Slide 12 — Hardware, equipo y siguientes pasos
-- **Centinela físico**: Raspberry Pi 5 + ONNX Runtime + anillo LED; modo "reto adversarial"; offload a GPU por HTTP.
+- **Centinel físico**: Raspberry Pi 5 + ONNX Runtime + anillo LED; modo "reto adversarial"; offload a GPU por HTTP.
 - 3 caminos en paralelo (A/B/C) con contratos de interfaz; Git con commits chicos; entrenos en RTX 4050/5050 y Modal.
 - Siguiente: recalibrar umbral cross-corpus, más clones difíciles (voice conversion), señal C al ensemble.
 
@@ -132,4 +132,4 @@ Caller (mic / dataset) ─▶ Consola web (Next.js) ─▶ API (FastAPI, WebSock
 ---
 
 ### Cierre (una frase)
-**Centinela Altur: detecta la voz que no existe.**
+**Centinel Altur: detecta la voz que no existe.**

@@ -14,7 +14,7 @@ export function WavePanel() {
           <ShieldCheck className="size-5" />
         </span>
         <div className="leading-tight">
-          <div className="font-semibold tracking-tight">Centinela Altur</div>
+          <div className="font-semibold tracking-tight">Centinel Altur</div>
           <div className="text-[11px] text-muted-foreground font-mono uppercase tracking-wider">anti-spoofing de voz</div>
         </div>
       </div>

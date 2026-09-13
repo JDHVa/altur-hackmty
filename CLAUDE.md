@@ -25,7 +25,7 @@ Altur/
 ├── scripts/                  ← utilidades: descarga de datasets, TTS sintético, entrenos, modal_app (GPU en Modal), analyze_audio
 ├── src/                      ← features, modelos, ensemble
 ├── api/                      ← FastAPI: POST /detect, /detect/detailed, WS /ws/call, /dataset/*
-├── web/                      ← Consola web "Centinela" (Next 16 + Tiger Data + Better Auth). Ver README.md
+├── web/                      ← Consola web "Centinel" (Next 16 + Tiger Data + Better Auth). Ver README.md
 └── hackmty26/                ← datos del reto (repo de la organización: alturio/hackmty26)
     ├── README.md             ← especificación oficial del challenge (LEER)
     ├── manifest.csv          ← 1 fila por llamada: anon_id, label, split, duration_s
@@ -95,7 +95,7 @@ El roadmap oficial está en **[`PLAN.md`](PLAN.md)** y la asignación por person
 - **Regla de oro:** el endpoint `POST /detect` con **solo la señal A** ya es entregable válido;
   todo lo demás suma pero **nunca bloquea** ese mínimo.
 - **3 caminos paralelos** (Jesús = A/API en CPU, Emilio = B/audio en RTX 4050,
-  Alonso = hardware "Centinela Altur" Pi 5 + GPU worker en RTX 5050). Contratos de interfaz en `EQUIPO.md`.
+  Alonso = hardware "Centinel Altur" Pi 5 + GPU worker en RTX 5050). Contratos de interfaz en `EQUIPO.md`.
 
 ## Flujo de trabajo Git / colaboración (OBLIGATORIO)
 

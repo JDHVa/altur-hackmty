@@ -1,4 +1,4 @@
-# Guía de Conexión a Centinela Altur (Raspberry Pi 5) para el Equipo
+# Guía de Conexión a Centinel Altur (Raspberry Pi 5) para el Equipo
 
 Esta guía permite a cualquier integrante del equipo (**Jesús, Emilio o Alonso**) conectarse por SSH a la Raspberry Pi 5 desde su laptop (Windows, Mac o Linux) para probar hardware, correr scripts o enlazar el backend en vivo.
 
@@ -78,12 +78,12 @@ python3 audio/test_audio.py
 Cuando tengas corriendo tu servidor FastAPI en tu laptop (`uvicorn api.main:app --host 0.0.0.0 --port 8000`), la Pi puede enviarle audio en vivo apuntando a la IP local de tu laptop:
 
 1. Obtén tu IP local en tu laptop (`ipconfig` en Windows, busca la IPv4 de Wi-Fi).
-2. En la Pi, el cliente Centinela se conectará a:
+2. En la Pi, el cliente Centinel se conectará a:
    `ws://<TU_IP_LOCAL>:8000/ws/call?source=mic`
 
 ---
 
-## 6. Modo Centinela LOCAL en vivo (compu = IA, Pi = pantalla)
+## 6. Modo Centinel LOCAL en vivo (compu = IA, Pi = pantalla)
 
 Flujo nuevo y **solo local**: la **computadora** captura el micrófono, corre el modelo
 (`altur_100`) y envía únicamente el resultado a la **Pi**, que solo lo muestra bonito.

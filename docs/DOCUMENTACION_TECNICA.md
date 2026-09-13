@@ -1,4 +1,4 @@
-# Centinela Altur — Documentación técnica de tecnologías
+# Centinel Altur — Documentación técnica de tecnologías
 
 > HackMTY 2026 · Altur Challenge. Detección de voz sintética en llamadas bancarias (es-MX).
 > Este documento describe **qué tecnologías usamos, para qué y cómo se conectan**. Para el roadmap ver `PLAN.md`; para la división de trabajo `EQUIPO.md`.
@@ -123,7 +123,7 @@ Todas las señales pesadas están **guardadas con try/except**: si falta `zuko`,
 
 ---
 
-## 8. Consola web "Centinela" (`web/`)
+## 8. Consola web "Centinel" (`web/`)
 
 | Capa | Tecnología | Por qué |
 |---|---|---|
@@ -137,7 +137,7 @@ Todas las señales pesadas están **guardadas con try/except**: si falta `zuko`,
 | ORM / migraciones | **Drizzle ORM** (`node-postgres`) + **drizzle-kit** (`0000_init`, `0001_timescale`, `0002_heavy_signals`) | Tipado end-to-end |
 | DB | **Tiger Data / Tiger Cloud** = Postgres 17 + **TimescaleDB**: `call_scores` es **hypertable** (`create_hypertable`), *continuous aggregate* `call_scores_hourly` con política de refresco; `time_bucket('1 hour')` en el dashboard | Series de tiempo de scores por llamada |
 | Persistencia | Server Actions (`saveCall`, `updateCallNotes`, `setRevealedLabel`); audio del mic en `bytea` | Sin capa REST extra |
-| Tema | Paleta "Centinela": fondo `#0B0F14`, acento cian `#22D3EE`, eje verde `#34D399` → ámbar `#FBBF24` → rojo `#F43F5E`; Geist Sans/Mono; dark-first con toggle | Consola de seguridad |
+| Tema | Paleta "Centinel": fondo `#0B0F14`, acento cian `#22D3EE`, eje verde `#34D399` → ámbar `#FBBF24` → rojo `#F43F5E`; Geist Sans/Mono; dark-first con toggle | Consola de seguridad |
 | Tooling | **pnpm**, ESLint 9, TypeScript 5.9, Turbopack | — |
 
 Pantallas: `/login` `/register` · `/` panel (KPIs 24 h, llamadas por hora, recientes) · `/call/new` sala de llamada (caller simulado + consola del operador con gauge, semáforo, timeline, señales A/B/XLS-R/WavLM/Flow y biomarcadores) · `/calls`, `/calls/[id]` (detalle, notas, export JSON, audio) · `/settings`.
@@ -164,7 +164,7 @@ Pantallas: `/login` `/register` · `/` panel (KPIs 24 h, llamadas por hora, reci
 - **Git LFS** para el audio del reto; `.gitignore` para credenciales (`*credentials.env`, `.env`) y audio personal.
 - **Modal** (GPU A10G) para entrenos pesados; **2 GPUs locales** (RTX 4050 / RTX 5050) para fine-tune e inferencia.
 - **Tiger Cloud** (sponsor) como DB gestionada; Gemini/Vultr/Snowflake/TigerGraph solo como bonus.
-- **Centinela Altur hardware** (Camino C, Raspberry Pi 5): ONNX Runtime arm64 + webrtcvad + anillo LED/pantalla, modo reto adversarial, fallback *offload* a la RTX 5050 por HTTP.
+- **Centinel Altur hardware** (Camino C, Raspberry Pi 5): ONNX Runtime arm64 + webrtcvad + anillo LED/pantalla, modo reto adversarial, fallback *offload* a la RTX 5050 por HTTP.
 - Agentes de código (**Claude Code**, Gemini) guiados por `CLAUDE.md`/`GEMINI.md`: sin comentarios en código, planes marcados como definitivos no se re-analizan.
 
 ---

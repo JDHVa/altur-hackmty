@@ -173,7 +173,7 @@ def main():
     paint('idle', 0.0, 'LISTO')
     threading.Thread(target=watchdog, daemon=True).start()
     srv = ThreadingHTTPServer(('0.0.0.0', PORT), H)
-    print(f'Receptor Centinela escuchando en 0.0.0.0:{PORT}  (POST /state)')
+    print(f'Receptor Centinel escuchando en 0.0.0.0:{PORT}  (POST /state)')
     try:
         srv.serve_forever()
     except KeyboardInterrupt:

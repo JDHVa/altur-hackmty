@@ -104,7 +104,7 @@ def main():
     except Exception as e:
         print('No hay microfono disponible:', str(e)[:120]); return
 
-    print(f'Centinela LOCAL activo. mic="{info["name"]}" sr={sr} destino={"in-proc" if DIRECT else LOCAL_URL} pi={PI_URL or "(consola)"}')
+    print(f'Centinel LOCAL activo. mic="{info["name"]}" sr={sr} destino={"in-proc" if DIRECT else LOCAL_URL} pi={PI_URL or "(consola)"}')
     print('Escuchando... (Ctrl+C para salir)')
 
     frame = int(sr * 0.1)

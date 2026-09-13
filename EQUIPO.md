@@ -49,7 +49,7 @@ Estado: ✅ hecho · 🟡 en progreso/parcial · ⬜ pendiente
 
 ---
 
-## 👤 Persona 3 — ALONSO · Camino C (Hardware "Centinela Altur") + GPU Worker
+## 👤 Persona 3 — ALONSO · Camino C (Hardware "Centinel Altur") + GPU Worker
 **Máquina:** RTX 5050 8 GB, 24 GB RAM. **Dueña del dispositivo físico y de las corridas pesadas.**
 
 ### Rol GPU worker (arranca aquí, mientras B madura)
@@ -57,7 +57,7 @@ Estado: ✅ hecho · 🟡 en progreso/parcial · ⬜ pendiente
   **pre-train** con datasets externos (ASVspoof/WaveFake), **batch inference** de los 353 audios.
 - Guardar datasets externos grandes aquí (disco/VRAM), entregar checkpoints a Emilio.
 
-### Rol hardware — Centinela Altur (Raspberry Pi 5 4 GB)
+### Rol hardware — Centinel Altur (Raspberry Pi 5 4 GB)
 Dispositivo de banca antifraude que **delata voz sintética en vivo**. Corre el **mismo pipeline** (paridad con `/detect`).
 
 | # | Tarea | Entregable |

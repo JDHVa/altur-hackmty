@@ -1,4 +1,4 @@
-# Centinela Altur — HackMTY 2026
+# Centinel Altur — HackMTY 2026
 
 > **La carpeta principal del proyecto es [`altur_100/`](altur_100/).**
 > Ahí vive el sistema final: el detector de voz humana vs. IA para llamadas Altur,
@@ -54,7 +54,7 @@ Reentrenar: `python altur_100/train.py` (usa `hackmty26/`).
 
 ---
 
-## `hardware/` — Centinela físico (opcional, solo local)
+## `hardware/` — Centinel físico (opcional, solo local)
 
 Raspberry Pi 5 con pantalla TFT (ILI9341) + matriz LED + bocina que **refleja el veredicto**
 del sistema web. La compu hace toda la IA y le manda el resultado al Pi por WiFi.

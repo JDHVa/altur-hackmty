@@ -1,4 +1,4 @@
-# Centinela Altur — 4 áreas para dominar en el pitch (una por integrante)
+# Centinel Altur — 4 áreas para dominar en el pitch (una por integrante)
 
 > Basado en `altur_100/`. Cada área: qué es, tecnologías, lo que debes poder explicar en 30 s, preguntas típicas del juez con respuesta, y dónde está en el código.
 > Sugerencia de reparto: Jesús → Área 3 y 4 · Emilio → Área 2 · Alonso → Área 1 (ajusten según quién lo construyó).

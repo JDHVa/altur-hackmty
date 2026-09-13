@@ -1,4 +1,4 @@
-# Elevator pitch — Centinela Altur (metodología STAR)
+# Elevator pitch — Centinel Altur (metodología STAR)
 
 > Basado únicamente en `altur_100/`. Duración objetivo: **60–90 s**. Cuatro slides para Canva (S · T · A · R) + cierre.
 > Visual: fondo `#0B0F14`, acento `#22D3EE`, humano `#34D399`, IA `#F43F5E`.
@@ -49,14 +49,14 @@
 ---
 
 ## Slide 5 — Cierre
-**Centinela Altur: detecta la voz que no existe.**
+**Centinel Altur: detecta la voz que no existe.**
 - `POST /detect` → `{is_synthetic, confidence}`
 - Demo: `<URL Modal o Vultr>/console/`
 
-*Guion (5 s):* "Centinela Altur. Detecta la voz que no existe."
+*Guion (5 s):* "Centinel Altur. Detecta la voz que no existe."
 
 ---
 
 ## Versión de un solo párrafo (para decir de corrido, ~60 s)
 
-"**Situación:** hoy cualquiera clona una voz y llama al banco; el operador no puede saber que no hay nadie del otro lado. **Tarea:** construir un endpoint que diga si la llamada es sintética, con confianza calibrada, y que funcione con voces que nunca vio. **Acción:** fusionamos 42 señales de *cómo se comporta* la llamada — latencias, silencios, turnos — con tres modelos de voz auto-supervisados congelados que detectan *cómo suena* una síntesis, en un solo clasificador desplegado en GPU en Modal, Vultr y Hugging Face. **Resultado:** 100 % en el split oficial, 99.3 % en validación cruzada, 98.6 % en holdout, y una API en producción con el contrato del reto. Centinela Altur: detecta la voz que no existe."
+"**Situación:** hoy cualquiera clona una voz y llama al banco; el operador no puede saber que no hay nadie del otro lado. **Tarea:** construir un endpoint que diga si la llamada es sintética, con confianza calibrada, y que funcione con voces que nunca vio. **Acción:** fusionamos 42 señales de *cómo se comporta* la llamada — latencias, silencios, turnos — con tres modelos de voz auto-supervisados congelados que detectan *cómo suena* una síntesis, en un solo clasificador desplegado en GPU en Modal, Vultr y Hugging Face. **Resultado:** 100 % en el split oficial, 99.3 % en validación cruzada, 98.6 % en holdout, y una API en producción con el contrato del reto. Centinel Altur: detecta la voz que no existe."

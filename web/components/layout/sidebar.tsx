@@ -22,7 +22,7 @@ export function Sidebar({ user, onSignOut }: { user?: { name: string; email: str
           <ShieldCheck className="size-4.5" />
         </span>
         <div className="leading-tight">
-          <div className="font-semibold tracking-tight">Centinela</div>
+          <div className="font-semibold tracking-tight">Centinel</div>
           <div className="text-[11px] text-muted-foreground font-mono uppercase tracking-wider">Altur · anti-spoofing</div>
         </div>
       </div>
