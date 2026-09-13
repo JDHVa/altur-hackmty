@@ -14,16 +14,16 @@ S = {'idle': 0, 'listening': 1, 'human': 2, 'bot': 3}
 _last = time.time()
 _lock = threading.Lock()
 
-TFT_ROTATE = int(os.environ.get('ALTUR_TFT_ROTATE', '0'))
+TFT_ROTATE = int(os.environ.get('ALTUR_TFT_ROTATE', '1'))
 
 try:
     import centinela as HW
     from luma.core.interface.serial import spi
     from luma.lcd.device import ili9341
     serial = spi(port=0, device=0, gpio_DC=24, gpio_RST=25, bus_speed_hz=HW.BUS_SPEED)
-    tft = ili9341(serial, width=240, height=320, rotate=TFT_ROTATE)
+    tft = ili9341(serial, width=320, height=240, rotate=TFT_ROTATE)
     matrix = HW.init_matrix()
-    print(f'Hardware Centinela OK (TFT vertical {tft.width}x{tft.height} rotate={TFT_ROTATE} + matriz)')
+    print(f'Hardware Centinela OK (TFT {tft.width}x{tft.height} rotate={TFT_ROTATE} + matriz)')
 except Exception as e:
     print('Sin hardware fisico (modo consola):', str(e)[:100])
 
