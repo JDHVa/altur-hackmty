@@ -16,9 +16,9 @@ STATE_LISTENING = 1
 STATE_RESULT_HUMAN = 2
 STATE_RESULT_BOT = 3
 
-TFT_W = 320
-TFT_H = 240
-SAFE_Y = 168
+TFT_W = 240
+TFT_H = 320
+SAFE_Y = 320
 BUS_SPEED = 8000000
 
 AUDIO_SR = 16000
@@ -70,7 +70,7 @@ def render_tft(device, state, confidence=0.0, label="IDLE"):
     bbox = draw.textbbox((0, 0), header_text, font=font_lg)
     header_w = bbox[2] - bbox[0]
     draw.text(((TFT_W - header_w) // 2, 4), header_text, fill=COLOR_GREEN, font=font_lg)
-    draw.line([(10, 28), (310, 28)], fill=COLOR_GREEN, width=1)
+    draw.line([(10, 28), (TFT_W - 10, 28)], fill=COLOR_GREEN, width=1)
 
     if state == STATE_IDLE:
         status_text = "SISTEMA LISTO"
@@ -87,12 +87,12 @@ def render_tft(device, state, confidence=0.0, label="IDLE"):
 
     draw.text((15, 34), status_text, fill=status_color, font=font_md)
 
-    draw.rectangle([(10, 55), (310, 115)], outline=COLOR_FRAME, width=1)
+    draw.rectangle([(10, 55), (TFT_W - 10, 115)], outline=COLOR_FRAME, width=1)
 
-    draw.rectangle([(15, 65), (305, 88)], fill=COLOR_DARK)
+    draw.rectangle([(15, 65), (TFT_W - 15, 88)], fill=COLOR_DARK)
 
     clamped = min(max(confidence, 0.0), 1.0)
-    bar_w = int(290 * clamped)
+    bar_w = int((TFT_W - 30) * clamped)
     if bar_w > 0:
         if state == STATE_RESULT_HUMAN:
             bar_color = COLOR_GREEN
@@ -106,7 +106,7 @@ def render_tft(device, state, confidence=0.0, label="IDLE"):
     draw.text((15, 93), pct_str, fill=COLOR_WHITE, font=font_md)
 
     draw.text((15, 130), time.strftime("%H:%M:%S"), fill=COLOR_GRAY, font=font_sm)
-    draw.text((200, 130), "CENTINELA ALTUR", fill=COLOR_FRAME, font=font_sm)
+    draw.text((TFT_W - 110, 130), "CENTINELA", fill=COLOR_FRAME, font=font_sm)
 
     full = Image.new("RGB", (TFT_W, TFT_H), color=(0, 0, 0))
     full.paste(safe, (0, 0))
