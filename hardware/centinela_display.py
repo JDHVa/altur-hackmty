@@ -14,9 +14,8 @@ S = {'idle': 0, 'listening': 1, 'human': 2, 'bot': 3}
 _last = time.time()
 _lock = threading.Lock()
 
-IMG_ROTATE = int(os.environ.get('ALTUR_TFT_IMG_ROTATE', '90'))
+TFT_ROTATE = int(os.environ.get('ALTUR_TFT_ROTATE', '1'))
 MATRIX_ROTATE = int(os.environ.get('ALTUR_MATRIX_ROTATE', '2'))
-PW, PH = 240, 320
 
 try:
     import centinela as HW
@@ -24,11 +23,11 @@ try:
     from luma.lcd.device import ili9341
     from luma.led_matrix.device import max7219
     serial = spi(port=0, device=0, gpio_DC=24, gpio_RST=25, bus_speed_hz=HW.BUS_SPEED)
-    tft = ili9341(serial, width=320, height=240, rotate=0)
+    tft = ili9341(serial, width=320, height=240, rotate=TFT_ROTATE)
     mserial = spi(port=0, device=1, gpio=noop())
     matrix = max7219(mserial, cascaded=1, block_orientation=0, rotate=MATRIX_ROTATE)
     matrix.contrast(30)
-    print(f'Hardware OK (TFT vertical, img_rotate={IMG_ROTATE}, matriz rotate={MATRIX_ROTATE})')
+    print(f'Hardware OK (TFT {tft.width}x{tft.height} rotate={TFT_ROTATE}, matriz rotate={MATRIX_ROTATE})')
 except Exception as e:
     print('Sin hardware fisico (modo consola):', str(e)[:100])
 
@@ -49,7 +48,7 @@ if HW:
 
 
 def render_tft_custom(state, conf, label):
-    W, H = PW, PH
+    W, H = tft.width, tft.height
     img = Image.new('RGB', (W, H), (12, 12, 20))
     d = ImageDraw.Draw(img)
     d.text((10, 12), 'CENTINELA ALTUR', font=_F['small'], fill=(95, 95, 125))
@@ -69,9 +68,8 @@ def render_tft_custom(state, conf, label):
         pct = f'{conf * 100:.0f}%'
         bb = d.textbbox((0, 0), pct, font=_F['sub'])
         d.text(((W - (bb[2] - bb[0])) // 2, by + 30), pct, font=_F['sub'], fill=(230, 230, 235))
-    out = img.rotate(IMG_ROTATE, expand=True)
     with HW.spi_lock:
-        tft.display(out)
+        tft.display(img)
 
 
 def paint(state, confidence, label):
