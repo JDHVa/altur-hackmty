@@ -35,6 +35,21 @@ COL = {'human': (150, 80, 230), 'bot': (235, 60, 60), 'listening': (240, 180, 40
 TITLE = {'human': ['HUMANO'], 'bot': ['INTELIGENCIA', 'ARTIFICIAL'], 'listening': ['ANALIZANDO...'], 'idle': ['EN ESPERA']}
 _F = {}
 
+SOUND = os.environ.get('ALTUR_SOUND', '1') != '0'
+SEQ = {'human': [(523, 0.14), (659, 0.14), (784, 0.22)], 'bot': [(220, 0.35), (160, 0.4)], 'listening': [(880, 0.1)]}
+_prev_state = None
+
+
+def play_sound(state):
+    if not (SOUND and HW) or state not in SEQ:
+        return
+    def go():
+        try:
+            HW.play_sequence(SEQ[state])
+        except Exception:
+            pass
+    threading.Thread(target=go, daemon=True).start()
+
 if HW:
     from PIL import Image, ImageDraw, ImageFont
 
@@ -73,6 +88,10 @@ def render_tft_custom(state, conf, label):
 
 
 def paint(state, confidence, label):
+    global _prev_state
+    if state != _prev_state:
+        play_sound(state)
+    _prev_state = state
     if HW and tft is not None:
         try:
             render_tft_custom(state, confidence, label)
