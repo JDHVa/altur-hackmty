@@ -5,164 +5,130 @@
 
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Centinela Altur — Consola de Operador</title>
+<title>Centinela Altur - Consola de Operador</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <style>
-  :root{
-    --bg:#0d1017; --panel:#161b24; --panel2:#1d2330; --line:#2a3342;
-    --txt:#e6ebf2; --mut:#8a97a8; --grn:#25c281; --amb:#f5b13d; --red:#ff5470; --accent:#4da3ff;
-  }
-  *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--txt);font:14px/1.5 system-ui,Segoe UI,Roboto,sans-serif}
-  header{display:flex;align-items:center;gap:12px;padding:14px 22px;border-bottom:1px solid var(--line);background:linear-gradient(90deg,#111621,#0d1017)}
-  header .logo{width:34px;height:34px;border-radius:8px;background:radial-gradient(circle at 30% 30%,#4da3ff,#1b3a63);display:grid;place-items:center;font-size:18px}
-  header h1{font-size:16px;margin:0;letter-spacing:.5px}
-  header .sub{color:var(--mut);font-size:12px}
-  .dot{width:9px;height:9px;border-radius:50%;background:#555;display:inline-block;margin-right:5px}
-  .dot.on{background:var(--grn);box-shadow:0 0 8px var(--grn)}
-  .wrap{max-width:1100px;margin:0 auto;padding:22px;display:grid;grid-template-columns:340px 1fr;gap:18px}
-  @media(max-width:820px){.wrap{grid-template-columns:1fr}}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px}
-  .card h2{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--mut);margin:0 0 12px}
-  .drop{border:2px dashed var(--line);border-radius:12px;padding:26px 14px;text-align:center;color:var(--mut);cursor:pointer;transition:.15s}
-  .drop:hover{border-color:var(--accent);color:var(--txt)}
-  .drop.small{padding:14px}
-  button{background:var(--accent);color:#04101f;border:0;border-radius:9px;padding:11px 16px;font-weight:700;cursor:pointer;width:100%;margin-top:12px;font-size:14px}
-  button:disabled{opacity:.5;cursor:default}
-  .file{font-size:12px;color:var(--mut);margin-top:8px;word-break:break-all}
-  .verdict{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
-  .badge{font-size:22px;font-weight:800;padding:10px 18px;border-radius:12px;letter-spacing:.5px}
-  .rec{font-size:13px;font-weight:800;padding:8px 14px;border-radius:9px;text-transform:uppercase;letter-spacing:1px}
-  .gaugewrap{display:flex;align-items:center;gap:22px;margin:6px 0 4px}
-  .pct{font-size:44px;font-weight:800}
-  .pct small{font-size:15px;color:var(--mut);font-weight:600}
-  .signals{margin-top:6px}
-  .sig{display:grid;grid-template-columns:120px 1fr 46px;align-items:center;gap:10px;margin:9px 0}
-  .sig .lab{color:var(--mut);font-size:13px}
-  .bar{height:9px;background:var(--panel2);border-radius:6px;overflow:hidden}
-  .bar > i{display:block;height:100%;border-radius:6px}
-  .metrics{display:flex;gap:22px;flex-wrap:wrap;margin-top:6px;color:var(--mut);font-size:13px}
-  .metrics b{color:var(--txt)}
-  .flow{height:46px;background:var(--panel2);border-radius:8px;position:relative;overflow:hidden;margin-top:6px}
-  .seg{position:absolute;top:0;height:100%;opacity:.85}
-  .seg.c{background:var(--red)}
-  .seg.a{background:var(--accent)}
-  .leg{display:flex;gap:16px;font-size:12px;color:var(--mut);margin-top:8px}
-  .sw{width:11px;height:11px;border-radius:3px;display:inline-block;margin-right:5px;vertical-align:-1px}
-  .muted{color:var(--mut)}
-  .hidden{display:none}
-  .err{color:var(--red);font-size:13px;margin-top:10px}
-  .tabs{display:flex;gap:8px;margin-bottom:14px}
-  .tab{flex:1;background:var(--panel2);color:var(--mut);border:1px solid var(--line);border-radius:9px;padding:9px;font-weight:700;cursor:pointer;margin:0;font-size:13px;width:auto}
-  .tab.active{background:var(--accent);color:#04101f}
-  .recbox{text-align:center;padding:20px;background:var(--panel2);border-radius:12px}
-  .recdot{width:16px;height:16px;border-radius:50%;background:#3a4353;margin:0 auto 10px}
-  .recdot.live{background:var(--red);animation:pulse 1s infinite}
-  @keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(255,84,112,.5)}50%{opacity:.6;box-shadow:0 0 0 10px rgba(255,84,112,0)}}
-  .rectime{font-size:30px;font-weight:800;font-variant-numeric:tabular-nums}
-  #latency{color:var(--grn)}
+  body{background:#f4f6f9}
+  .brand{font-weight:700;letter-spacing:.5px}
+  .dropzone{border:2px dashed #ccd3dc;border-radius:.75rem;padding:2rem 1rem;text-align:center;color:#6c757d;cursor:pointer;transition:.15s}
+  .dropzone:hover{border-color:#0d6efd;color:#212529;background:#fbfdff}
+  .seg-bar{height:34px;background:#eef1f5;border-radius:.5rem;position:relative;overflow:hidden}
+  .seg-bar .t{position:absolute;top:0;height:100%}
+  .seg-bar .t.caller{background:rgba(220,53,69,.75)}
+  .seg-bar .t.agent{background:rgba(13,110,253,.6)}
+  .tspan{padding:.05rem .15rem;border-radius:.2rem}
+  .metric b{font-size:1.05rem}
+  #transcript{line-height:2.1;max-height:320px;overflow:auto}
 </style>
 </head>
 <body>
-<header>
-  <div class="logo">🛡️</div>
-  <div>
-    <h1>CENTINELA ALTUR</h1>
-    <div class="sub">Consola antifraude · detección de voz sintética en llamadas</div>
+<nav class="navbar navbar-expand bg-white border-bottom">
+  <div class="container-fluid">
+    <span class="navbar-brand brand mb-0">CENTINELA ALTUR</span>
+    <span class="text-muted small d-none d-md-inline">Consola antifraude - detección de voz sintética</span>
+    <span class="ms-auto"><span id="apistat" class="badge text-bg-secondary">conectando...</span></span>
   </div>
-  <div style="margin-left:auto" class="sub"><span id="dot" class="dot"></span><span id="apistat">conectando…</span></div>
-</header>
+</nav>
 
-<div class="wrap">
-  <div class="card">
-    <h2>Llamada entrante</h2>
-    <div class="tabs">
-      <button id="tabUp" class="tab active">📁 Subir audio</button>
-      <button id="tabRec" class="tab">🎙️ En vivo</button>
-    </div>
-
-    <div id="paneUp">
-      <div id="drop" class="drop">
-        <div style="font-size:26px">🎧</div>
-        <div>Arrastra o haz clic para cargar el audio<br><span class="muted">WAV / MP3 / M4A / OGG</span></div>
-      </div>
-      <input id="file" type="file" accept="audio/*,.wav,.m4a,.mp3,.ogg" class="hidden">
-      <div id="fname" class="file"></div>
-      <button id="go" disabled>Analizar llamada</button>
-    </div>
-
-    <div id="paneRec" class="hidden">
-      <div class="recbox">
-        <div id="recdot" class="recdot"></div>
-        <div id="rectime" class="rectime">00:00</div>
-        <div class="muted" id="rechint">Graba la voz del interlocutor</div>
-      </div>
-      <button id="recBtn">● Grabar</button>
-    </div>
-
-    <div id="err" class="err"></div>
-    <div class="metrics" style="margin-top:16px">
-      <div>Umbral colgar: <b id="thr">—</b></div>
-      <div id="latency"></div>
-    </div>
-  </div>
-
-  <div class="card">
-    <h2>Veredicto del operador</h2>
-    <div id="empty" class="muted">Carga una llamada para analizar el riesgo…</div>
-
-    <div id="result" class="hidden">
-      <div class="verdict">
-        <div id="badge" class="badge">—</div>
-        <div id="rec" class="rec">—</div>
-      </div>
-
-      <div class="gaugewrap">
-        <svg width="150" height="86" viewBox="0 0 150 86">
-          <path d="M12 80 A63 63 0 0 1 138 80" fill="none" stroke="#242c3a" stroke-width="14" stroke-linecap="round"/>
-          <path id="arc" d="M12 80 A63 63 0 0 1 138 80" fill="none" stroke="#25c281" stroke-width="14" stroke-linecap="round" stroke-dasharray="198" stroke-dashoffset="198"/>
-        </svg>
-        <div><div class="pct"><span id="pct">0</span><small>% IA</small></div><div class="muted" id="conf"></div></div>
-      </div>
-
-      <div class="signals">
-        <div class="sig" id="row_tab"><span class="lab">Conductual (turnos)</span><div class="bar"><i id="b_tab"></i></div><span id="v_tab" class="muted"></span></div>
-        <div class="sig"><span class="lab">Audio (síntesis)</span><div class="bar"><i id="b_audio"></i></div><span id="v_audio" class="muted"></span></div>
-        <div class="sig"><span class="lab">· WavLM</span><div class="bar"><i id="b_wavlm"></i></div><span id="v_wavlm" class="muted"></span></div>
-        <div class="sig"><span class="lab">· XLS-R-SLS</span><div class="bar"><i id="b_xlsr"></i></div><span id="v_xlsr" class="muted"></span></div>
-      </div>
-
-      <h2 style="margin-top:18px">Flujo de la llamada</h2>
-      <div id="flow" class="flow"></div>
-      <div class="leg"><span><span class="sw" style="background:var(--red)"></span>Cliente (canal 0)</span><span><span class="sw" style="background:var(--accent)"></span>Agente (canal 1)</span></div>
-
-      <div class="metrics" style="margin-top:14px">
-        <div>Duración: <b id="m_dur">—</b></div>
-        <div>Turnos: <b id="m_turns">—</b></div>
-        <div>HNR: <b id="m_hnr">—</b></div>
-        <div>Shimmer: <b id="m_shim">—</b></div>
-        <div>F0: <b id="m_f0">—</b></div>
+<div class="container-fluid py-4">
+ <div class="row g-4">
+  <div class="col-lg-4">
+    <div class="card shadow-sm">
+      <div class="card-header bg-white fw-semibold">Llamada entrante</div>
+      <div class="card-body">
+        <ul class="nav nav-pills nav-justified mb-3" role="tablist">
+          <li class="nav-item"><button class="nav-link active" id="tabUp" data-bs-toggle="pill" data-bs-target="#paneUp" type="button">Subir audio</button></li>
+          <li class="nav-item"><button class="nav-link" id="tabRec" data-bs-toggle="pill" data-bs-target="#paneRec" type="button">En vivo</button></li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane fade show active" id="paneUp">
+            <div id="drop" class="dropzone">
+              <div>Arrastra o haz clic para cargar el audio</div>
+              <div class="small text-muted">WAV / MP3 / M4A / OGG</div>
+            </div>
+            <input id="file" type="file" accept="audio/*,.wav,.m4a,.mp3,.ogg" class="d-none">
+            <div id="fname" class="small text-muted mt-2 text-break"></div>
+            <button id="go" class="btn btn-primary w-100 mt-3" disabled>Analizar llamada</button>
+          </div>
+          <div class="tab-pane fade" id="paneRec">
+            <div class="text-center p-3 bg-light rounded">
+              <div id="recdot" class="rounded-circle mx-auto mb-2" style="width:16px;height:16px;background:#ced4da"></div>
+              <div id="rectime" class="fs-3 fw-bold">00:00</div>
+              <div class="small text-muted" id="rechint">Graba la voz del interlocutor</div>
+            </div>
+            <button id="recBtn" class="btn btn-outline-danger w-100 mt-3">Grabar</button>
+          </div>
+        </div>
+        <div id="err" class="text-danger small mt-3"></div>
+        <div class="d-flex justify-content-between small text-muted mt-3">
+          <span>Umbral colgar: <b id="thr">-</b></span>
+          <span id="latency" class="text-success"></span>
+        </div>
       </div>
     </div>
   </div>
+
+  <div class="col-lg-8">
+    <div class="card shadow-sm">
+      <div class="card-header bg-white fw-semibold">Veredicto del operador</div>
+      <div class="card-body">
+        <div id="empty" class="text-muted">Carga una llamada para analizar el riesgo...</div>
+        <div id="result" class="d-none">
+          <div class="d-flex align-items-center gap-3 mb-3 flex-wrap">
+            <span id="badge" class="badge fs-5 px-3 py-2">-</span>
+            <span id="rec" class="badge fs-6 px-3 py-2">-</span>
+            <span class="ms-auto text-end"><span id="pct" class="fs-2 fw-bold">0</span><span class="text-muted">% IA</span><div class="small text-muted" id="conf"></div></span>
+          </div>
+          <div class="progress mb-3" style="height:14px"><div id="riskbar" class="progress-bar" style="width:0%"></div></div>
+
+          <div class="row row-cols-1 g-2 mb-3" id="signals"></div>
+
+          <div class="fw-semibold small text-uppercase text-muted mt-3 mb-1">Flujo de la llamada</div>
+          <div id="flow" class="seg-bar"></div>
+          <div class="small text-muted mt-1">
+            <span class="badge" style="background:rgba(220,53,69,.75)">Cliente (canal 0)</span>
+            <span class="badge" style="background:rgba(13,110,253,.6)">Agente (canal 1)</span>
+          </div>
+
+          <div class="d-flex gap-4 flex-wrap mt-3 metric text-muted">
+            <span>Duración: <b id="m_dur" class="text-dark">-</b></span>
+            <span>Turnos: <b id="m_turns" class="text-dark">-</b></span>
+          </div>
+
+          <hr>
+          <button id="whyBtn" class="btn btn-outline-secondary btn-sm">Ver por qué (transcripción + análisis)</button>
+          <div id="why" class="d-none mt-3">
+            <div class="fw-semibold mb-2">Señales que pesaron en la decisión</div>
+            <ul id="reasons" class="list-group list-group-flush mb-3"></ul>
+            <div class="fw-semibold mb-1">Transcripción de quien llama</div>
+            <div class="small text-muted mb-2">Resaltado = ese fragmento <b>suena sintético</b> según el detector de audio.</div>
+            <div id="transcript" class="border rounded p-3 bg-white"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+ </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+window.API_BASE = window.API_BASE || '';
 const $ = id => document.getElementById(id);
-let fileBuf = null;
+let fileBuf = null, lastB64 = null;
 
-fetch(window.API_BASE+'/health').then(r=>r.json()).then(d=>{
-  $('dot').classList.add('on'); $('apistat').textContent = 'API conectada' + (d.heavy?' · modelos pesados ON':'');
-}).catch(()=>{ $('apistat').textContent='API no disponible'; });
+fetch(window.API_BASE+'/health').then(r=>r.json()).then(()=>{
+  const b=$('apistat'); b.textContent='API conectada'; b.className='badge text-bg-success';
+}).catch(()=>{ const b=$('apistat'); b.textContent='API no disponible'; b.className='badge text-bg-danger'; });
 
 $('drop').onclick = ()=> $('file').click();
-$('drop').ondragover = e=>{e.preventDefault(); $('drop').style.borderColor='var(--accent)';};
+$('drop').ondragover = e=>{e.preventDefault(); $('drop').style.borderColor='#0d6efd';};
 $('drop').ondragleave = ()=> $('drop').style.borderColor='';
 $('drop').ondrop = e=>{e.preventDefault(); $('drop').style.borderColor=''; if(e.dataTransfer.files[0]) pick(e.dataTransfer.files[0]);};
 $('file').onchange = e=>{ if(e.target.files[0]) pick(e.target.files[0]); };
 
 function pick(f){
-  $('fname').textContent = f.name;
-  $('err').textContent='';
+  $('fname').textContent = f.name; $('err').textContent='';
   const r = new FileReader();
   r.onload = ()=>{ fileBuf = r.result; $('go').disabled=false; };
   r.readAsArrayBuffer(f);
@@ -202,11 +168,12 @@ async function encodeFor(buf){
   try{ return b64(await toWav8k(buf)); }catch(e){ return b64(buf); }
 }
 
-const col = p => p>=0.7?'var(--red)': p>=0.4?'var(--amb)':'var(--grn)';
-function setbar(id,val){ const p=Math.max(0,Math.min(1,val)); $(id).style.width=(p*100)+'%'; $(id).style.background=col(p); }
+function riskClass(p){ return p>=0.5?'bg-danger': p>=0.35?'bg-warning':'bg-success'; }
 
 async function analyze(base64){
+  lastB64 = base64;
   $('err').textContent=''; $('latency').textContent='';
+  $('why').classList.add('d-none'); $('whyBtn').disabled=false; $('whyBtn').textContent='Ver por qué (transcripción + análisis)';
   const t0=performance.now();
   try{
     const res = await fetch(window.API_BASE+'/detect/detailed',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({audio_base64:base64})});
@@ -219,13 +186,10 @@ async function analyze(base64){
 
 $('go').onclick = async ()=>{
   if(!fileBuf) return;
-  $('go').disabled=true; $('go').textContent='Analizando…';
+  $('go').disabled=true; $('go').textContent='Analizando...';
   await analyze(await encodeFor(fileBuf));
   $('go').disabled=false; $('go').textContent='Analizar llamada';
 };
-
-$('tabUp').onclick=()=>{ $('tabUp').classList.add('active'); $('tabRec').classList.remove('active'); $('paneUp').classList.remove('hidden'); $('paneRec').classList.add('hidden'); };
-$('tabRec').onclick=()=>{ $('tabRec').classList.add('active'); $('tabUp').classList.remove('active'); $('paneRec').classList.remove('hidden'); $('paneUp').classList.add('hidden'); };
 
 let mr=null, recChunks=[], recTimer=null, recT0=0;
 $('recBtn').onclick = async ()=>{
@@ -235,53 +199,88 @@ $('recBtn').onclick = async ()=>{
     recChunks=[]; mr=new MediaRecorder(stream);
     mr.ondataavailable=e=>recChunks.push(e.data);
     mr.onstop=async ()=>{
-      clearInterval(recTimer); $('recdot').classList.remove('live'); $('recBtn').textContent='● Grabar';
+      clearInterval(recTimer); $('recdot').style.background='#ced4da'; $('recBtn').textContent='Grabar';
       stream.getTracks().forEach(t=>t.stop());
       const blob=new Blob(recChunks,{type:mr.mimeType||'audio/webm'});
       const buf=await blob.arrayBuffer();
-      $('recBtn').disabled=true; $('rechint').textContent='Analizando…';
+      $('recBtn').disabled=true; $('rechint').textContent='Analizando...';
       await analyze(await encodeFor(buf));
       $('recBtn').disabled=false; $('rechint').textContent='Graba la voz del interlocutor';
     };
-    mr.start(); recT0=Date.now(); $('recdot').classList.add('live'); $('recBtn').textContent='■ Detener';
+    mr.start(); recT0=Date.now(); $('recdot').style.background='#dc3545'; $('recBtn').textContent='Detener';
     recTimer=setInterval(()=>{ const s=Math.floor((Date.now()-recT0)/1000); $('rectime').textContent=String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); },250);
   }catch(e){ $('err').textContent='No se pudo acceder al micrófono: '+e.message; }
 };
 
+function sigRow(label, val){
+  const pct=Math.round((val||0)*100);
+  return `<div class="col"><div class="d-flex justify-content-between small"><span class="text-muted">${label}</span><span>${pct}%</span></div>`+
+         `<div class="progress" style="height:8px"><div class="progress-bar ${riskClass(val||0)}" style="width:${pct}%"></div></div></div>`;
+}
+
 function render(d){
-  $('empty').classList.add('hidden'); $('result').classList.remove('hidden');
+  $('empty').classList.add('d-none'); $('result').classList.remove('d-none');
   const p = d.p_final;
   $('pct').textContent = Math.round(p*100);
   $('thr').textContent = d.threshold;
   $('conf').textContent = 'confianza '+(d.confidence*100).toFixed(1)+'%';
-  const off = 198 - 198*Math.max(0,Math.min(1,p));
-  const arc=$('arc'); arc.style.strokeDashoffset=off; arc.style.stroke=col(p);
+  const rb=$('riskbar'); rb.style.width=Math.round(p*100)+'%'; rb.className='progress-bar '+riskClass(p);
 
   const b=$('badge');
-  if(d.is_synthetic){ b.textContent='IA / SINTÉTICO'; b.style.background='rgba(255,84,112,.15)'; b.style.color='var(--red)'; }
-  else { b.textContent='HUMANO'; b.style.background='rgba(37,194,129,.15)'; b.style.color='var(--grn)'; }
+  if(d.is_synthetic){ b.textContent='IA / SINTÉTICO'; b.className='badge fs-5 px-3 py-2 text-bg-danger'; }
+  else { b.textContent='HUMANO'; b.className='badge fs-5 px-3 py-2 text-bg-success'; }
 
-  const r=$('rec'), rr=d.recommendation;
-  const map={hangup:['COLGAR','var(--red)'],verify:['VERIFICAR IDENTIDAD','var(--amb)'],continue:['CONTINUAR','var(--grn)']};
-  const m=map[rr]||[rr,'var(--mut)']; r.textContent=m[0]; r.style.background='rgba(255,255,255,.06)'; r.style.color=m[1]; r.style.border='1px solid '+m[1];
+  const map={hangup:['COLGAR','text-bg-danger'],verify:['VERIFICAR IDENTIDAD','text-bg-warning'],continue:['CONTINUAR','text-bg-success']};
+  const m=map[d.recommendation]||[d.recommendation,'text-bg-secondary'];
+  $('rec').textContent=m[0]; $('rec').className='badge fs-6 px-3 py-2 '+m[1];
 
   const sg=d.signals||{};
-  if(d.p_tabular==null){ $('row_tab').classList.add('hidden'); }
-  else { $('row_tab').classList.remove('hidden'); setbar('b_tab',d.p_tabular); $('v_tab').textContent=(d.p_tabular*100).toFixed(0)+'%'; }
-  setbar('b_audio',d.p_audio); $('v_audio').textContent=(d.p_audio*100).toFixed(0)+'%';
-  setbar('b_wavlm',sg.wavlm||0); $('v_wavlm').textContent=((sg.wavlm||0)*100).toFixed(0)+'%';
-  setbar('b_xlsr',sg.xlsr||0); $('v_xlsr').textContent=((sg.xlsr||0)*100).toFixed(0)+'%';
+  let html='';
+  if(d.p_tabular!=null) html+=sigRow('Conductual (turnos)',d.p_tabular);
+  html+=sigRow('Audio (síntesis)',d.p_audio);
+  html+=sigRow('WavLM',sg.wavlm);
+  html+=sigRow('XLS-R-SLS',sg.xlsr);
+  $('signals').innerHTML=html;
 
-  $('m_dur').textContent=d.duration_s+'s'; $('m_turns').textContent=d.n_turns;
-  const bio=d.bio||{};
-  $('m_hnr').textContent=(bio.hnr!=null?bio.hnr.toFixed(1)+'dB':'—');
-  $('m_shim').textContent=(bio.shimmer_local!=null?bio.shimmer_local.toFixed(3):'—');
-  $('m_f0').textContent=(bio.f0_mean!=null?Math.round(bio.f0_mean)+'Hz':'—');
+  $('m_dur').textContent=(d.duration_s||0)+'s'; $('m_turns').textContent=d.n_turns;
 
   const flow=$('flow'); flow.innerHTML='';
   const turns=d.turns||[]; const dur=d.duration_s||1;
-  turns.forEach(t=>{ const s=document.createElement('div'); s.className='seg '+(t.channel===0?'c':'a');
+  turns.forEach(t=>{ const s=document.createElement('div'); s.className='t '+(t.channel===0?'caller':'agent');
     s.style.left=(100*t.start/dur)+'%'; s.style.width=Math.max(0.4,100*(t.end-t.start)/dur)+'%'; flow.appendChild(s); });
+}
+
+$('whyBtn').onclick = async ()=>{
+  if(!lastB64) return;
+  $('whyBtn').disabled=true; $('whyBtn').textContent='Transcribiendo y analizando...';
+  try{
+    const res = await fetch(window.API_BASE+'/explain',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({audio_base64:lastB64})});
+    if(!res.ok){ throw new Error((await res.json()).detail || res.status); }
+    renderWhy(await res.json());
+    $('why').classList.remove('d-none');
+    $('whyBtn').textContent='Ver por qué (transcripción + análisis)';
+  }catch(e){ $('err').textContent='Error explicación: '+e.message; $('whyBtn').textContent='Reintentar explicación'; }
+  $('whyBtn').disabled=false;
+};
+
+function renderWhy(d){
+  const ul=$('reasons'); ul.innerHTML='';
+  (d.reasons||[]).forEach(r=>{
+    const li=document.createElement('li'); li.className='list-group-item d-flex justify-content-between align-items-center px-0';
+    const tag = r.ia_like ? '<span class="badge text-bg-danger">IA</span>' : '<span class="badge text-bg-success">humano</span>';
+    li.innerHTML='<span>'+r.text+'</span>'+tag; ul.appendChild(li);
+  });
+  const tr=$('transcript'); tr.innerHTML='';
+  const segs=d.segments||[];
+  if(!segs.length){ tr.innerHTML='<span class="text-muted">Sin habla detectada del que llama.</span>'; return; }
+  segs.forEach(s=>{
+    const sp=document.createElement('span'); sp.className='tspan';
+    const a=Math.max(0,Math.min(1,s.score));
+    sp.style.background='rgba(220,53,69,'+(a*0.85).toFixed(2)+')';
+    if(a>=0.5) sp.style.color='#fff';
+    sp.title='sintético '+Math.round(a*100)+'%';
+    sp.textContent=s.text+' '; tr.appendChild(sp);
+  });
 }
 </script>
 </body>

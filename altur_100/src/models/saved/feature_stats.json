@@ -1,0 +1,62 @@
+{
+ "time_to_first_caller_s": {
+  "human_mean": 4.6002,
+  "human_std": 4.0325468410289655,
+  "synth_mean": 9.931034482758621,
+  "synth_std": 2.891720350449937
+ },
+ "caller_latency_mean": {
+  "human_mean": 0.5527752848172753,
+  "human_std": 0.6696726322302229,
+  "synth_mean": 1.7373359232264896,
+  "synth_std": 1.2666616811602345
+ },
+ "caller_latency_median": {
+  "human_mean": 0.8810000000000002,
+  "human_std": 0.7584428237412809,
+  "synth_mean": 2.015541871921182,
+  "synth_std": 1.3521664597395808
+ },
+ "n_overlaps": {
+  "human_mean": 6.086666666666667,
+  "human_std": 5.258564386409723,
+  "synth_mean": 5.862068965517241,
+  "synth_std": 7.831394791931792
+ },
+ "overlap_total_s": {
+  "human_mean": 7.4322,
+  "human_std": 7.516997285751375,
+  "synth_mean": 6.904876847290642,
+  "synth_std": 9.909244252243033
+ },
+ "n_turns_caller": {
+  "human_mean": 26.053333333333335,
+  "human_std": 11.777259688770583,
+  "synth_mean": 28.93103448275862,
+  "synth_std": 25.161061939471452
+ },
+ "caller_turns_per_min": {
+  "human_mean": 10.470240935737525,
+  "human_std": 4.5671178670480606,
+  "synth_mean": 11.760667238142,
+  "synth_std": 9.182535502907617
+ },
+ "silence_mean": {
+  "human_mean": 0.8555919200616238,
+  "human_std": 0.11699703035201967,
+  "synth_mean": 0.9554617472052518,
+  "synth_std": 0.2201483564109356
+ },
+ "xlsr": {
+  "human_mean": 0.062387835133842724,
+  "human_std": 0.13809760936590304,
+  "synth_mean": 0.781105948276117,
+  "synth_std": 0.1575449608247857
+ },
+ "wavlm": {
+  "human_mean": 0.028481221456934366,
+  "human_std": 0.06891506347956848,
+  "synth_mean": 0.3885865222172653,
+  "synth_std": 0.2122187094577723
+ }
+}
