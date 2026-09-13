@@ -22,18 +22,59 @@ try:
 except Exception as e:
     print('Sin hardware fisico (modo consola):', str(e)[:100])
 
+COL = {'human': (150, 80, 230), 'bot': (235, 60, 60), 'listening': (240, 180, 40), 'idle': (120, 120, 140)}
+TITLE = {'human': ['HUMANO'], 'bot': ['INTELIGENCIA', 'ARTIFICIAL'], 'listening': ['ANALIZANDO...'], 'idle': ['EN ESPERA']}
+_F = {}
+
+if HW:
+    from PIL import Image, ImageDraw, ImageFont
+
+    def _font(sz, bold=True):
+        try:
+            p = '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf' if bold else '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
+            return ImageFont.truetype(p, sz)
+        except Exception:
+            return ImageFont.load_default()
+    _F = {'title': _font(30), 'sub': _font(16, False), 'small': _font(12, False)}
+
+
+def render_tft_custom(state, conf, label):
+    W, H = HW.TFT_W, HW.TFT_H
+    img = Image.new('RGB', (W, H), (12, 12, 20))
+    d = ImageDraw.Draw(img)
+    d.text((12, 8), 'CENTINELA ALTUR', font=_F['small'], fill=(95, 95, 125))
+    d.line([(12, 27), (W - 12, 27)], fill=(40, 40, 60), width=1)
+    col = COL.get(state, (120, 120, 140))
+    lines = TITLE.get(state, ['EN ESPERA'])
+    y = 58 if len(lines) > 1 else 74
+    for ln in lines:
+        bb = d.textbbox((0, 0), ln, font=_F['title'])
+        d.text(((W - (bb[2] - bb[0])) // 2, y), ln, font=_F['title'], fill=col)
+        y += 38
+    if state in ('human', 'bot'):
+        by = y + 10
+        d.rectangle([(20, by), (W - 20, by + 20)], fill=(30, 30, 45))
+        bw = int((W - 44) * max(0.0, min(1.0, conf)))
+        d.rectangle([(22, by + 2), (22 + bw, by + 18)], fill=col)
+        pct = f'{conf * 100:.0f}%'
+        bb = d.textbbox((0, 0), pct, font=_F['sub'])
+        d.text(((W - (bb[2] - bb[0])) // 2, by + 26), pct, font=_F['sub'], fill=(230, 230, 235))
+    with HW.spi_lock:
+        tft.display(img)
+
 
 def paint(state, confidence, label):
-    st = S.get(state, 0)
     if HW and tft is not None:
         try:
-            HW.render_tft(tft, st, confidence, label)
-            HW.render_matrix_icon(matrix, st)
+            render_tft_custom(state, confidence, label)
+            if matrix is not None:
+                HW.render_matrix_icon(matrix, S.get(state, 0))
         except Exception as e:
-            print('render error:', str(e)[:80])
+            print('render error:', str(e)[:80], flush=True)
     else:
+        name = ' '.join(TITLE.get(state, [state.upper()]))
         bar = '#' * int(26 * max(0.0, min(1.0, confidence)))
-        print(f'[{state.upper():<10}] {bar:<26} {confidence * 100:5.1f}% {label}', flush=True)
+        print(f'[{name:<24}] {bar:<26} {confidence * 100:5.1f}%', flush=True)
 
 
 def watchdog():
