@@ -1,9 +1,12 @@
 import io
 import os
 import sys
+import json
 import base64
 import binascii
 import subprocess
+import threading
+import urllib.request
 import numpy as np
 import soundfile as sf
 from fastapi import FastAPI, HTTPException
@@ -14,6 +17,24 @@ sys.path.insert(0, HERE)
 from pipeline import predict, explain, audio_only
 
 app = FastAPI(title='Altur 100 - A+B')
+
+PI_URL = os.environ.get('ALTUR_PI_URL', '')
+
+
+def notify_pi(is_syn, confidence):
+    if not PI_URL:
+        return
+    state = 'bot' if is_syn else 'human'
+    label = 'VOZ IA' if is_syn else 'HUMANO'
+
+    def go():
+        try:
+            body = json.dumps({'state': state, 'confidence': float(confidence), 'label': label}).encode()
+            req = urllib.request.Request(PI_URL, data=body, headers={'Content-Type': 'application/json'})
+            urllib.request.urlopen(req, timeout=1.5).read()
+        except Exception:
+            pass
+    threading.Thread(target=go, daemon=True).start()
 
 
 class DetectRequest(BaseModel):
@@ -44,6 +65,7 @@ def detect(payload: DetectRequest):
     except (binascii.Error, ValueError, RuntimeError):
         raise HTTPException(status_code=400, detail='audio invalido')
     d = predict(data, sr)
+    notify_pi(d['is_synthetic'], d['confidence'])
     return {'is_synthetic': d['is_synthetic'], 'confidence': d['confidence']}
 
 
@@ -53,7 +75,9 @@ def detect_detailed(payload: DetectRequest):
         data, sr = decode(payload.audio_base64)
     except (binascii.Error, ValueError, RuntimeError):
         raise HTTPException(status_code=400, detail='audio invalido')
-    return predict(data, sr)
+    d = predict(data, sr)
+    notify_pi(d['is_synthetic'], d['confidence'])
+    return d
 
 
 @app.post('/detect/audio')
@@ -62,7 +86,10 @@ def detect_audio(payload: DetectRequest):
         data, sr = decode(payload.audio_base64)
     except (binascii.Error, ValueError, RuntimeError):
         raise HTTPException(status_code=400, detail='audio invalido')
-    return audio_only(data, sr)
+    d = audio_only(data, sr)
+    p = d['p_synthetic']
+    notify_pi(d['is_synthetic'], p if d['is_synthetic'] else 1.0 - p)
+    return d
 
 
 @app.post('/explain')
