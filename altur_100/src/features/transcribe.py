@@ -9,10 +9,9 @@ _MODEL = None
 def _model():
     global _MODEL
     if _MODEL is None:
-        import torch
         from faster_whisper import WhisperModel
-        dev = 'cuda' if torch.cuda.is_available() else 'cpu'
-        ct = 'float16' if dev == 'cuda' else 'int8'
+        dev = os.environ.get('WHISPER_DEVICE', 'cpu')
+        ct = os.environ.get('WHISPER_CT', 'int8')
         _MODEL = WhisperModel(WHISPER_SIZE, device=dev, compute_type=ct)
     return _MODEL
 
