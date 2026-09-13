@@ -72,4 +72,4 @@ Ver [`hardware/README.md`](hardware/README.md) para los comandos exactos.
 - `api/`, `web/` — versión anterior (FastAPI + consola Next.js); histórica.
 - `src/`, `scripts/`, `planes/`, `docs/` — features, entrenamiento, planeación y documentación.
 
-Contexto del reto y división de trabajo: [`CLAUDE.md`](CLAUDE.md), [`PLAN.md`](PLAN.md), [`EQUIPO.md`](EQUIPO.md).
+Contexto del reto y división de trabajo: [`CLAUDE.md`](CLAUDE.md), [`PLAN.md`](planes/PLAN.md), [`EQUIPO.md`](EQUIPO.md).

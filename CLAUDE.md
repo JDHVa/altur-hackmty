@@ -18,7 +18,7 @@ conversaciones reales de atención a clientes.
 Altur/
 ├── CLAUDE.md                 ← este archivo
 ├── GEMINI.md                 ← misma guía para Gemini
-├── PLAN.md / EQUIPO.md       ← roadmap y asignación por persona
+├── EQUIPO.md                 ← asignación por persona (roadmap: planes/PLAN.md)
 ├── planes/                   ← planes concretados y handoffs (plan_arquitectura_v3, plan_v4_deteccion, modelos_pesados_camino_b…)
 ├── docs/reto/                ← PDF del challenge
 ├── docs/investigacion/       ← investigaciones fuente (.docx) y notas
@@ -79,7 +79,7 @@ calibración).
 
 ## Plan y arquitectura (DECIDIDO) — leer `PLAN.md` y `EQUIPO.md`
 
-El roadmap oficial está en **[`PLAN.md`](PLAN.md)** y la asignación por persona en
+El roadmap oficial está en **[`PLAN.md`](planes/PLAN.md)** y la asignación por persona en
 **[`EQUIPO.md`](EQUIPO.md)**. Resumen de decisiones para agentes:
 
 - **Ensemble de 3 señales**, calibrado (Platt/isotónica) para `confidence`:
@@ -133,4 +133,4 @@ ni proponer alternativas** — solo ejecútalo. Solo se analizan/discuten los pl
 tengan ese marcador.
 
 - **`planes/plan_arquitectura_v3.md`** es el plan de arquitectura **DEFINITIVO** (Dual Ensemble A+B).
-- La carpeta **`planes_no_usados/`** contiene planes descartados/reemplazados: **IGNORARLA por completo** (no analizar, no ejecutar, no usar como referencia).
+- Los planes **descartados/reemplazados** ahora viven también en `planes/` (`plan_arquitectura_emilio-1.docx`, `plan_jesus_altur-1.md`, `PLAN_PARA_CLAUDE.md`); ver `planes/README_planes_no_usados.md`. **IGNORARLOS por completo** (no analizar, no ejecutar, no usar como referencia).

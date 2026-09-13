@@ -10,7 +10,7 @@ Solo Python estándar. Todo lo necesario ya está versionado:
 git clone <repo> && cd altur-hackmty
 python scripts/eval_config.py --wavlm 0.2 --xlsr 0.6 --prosody 0.1 --flow 0.1 --threshold 0.30
 ```
-No hace falta venv, GPU, ni modelos. (Ver `plan_parametros.md`.)
+No hace falta venv, GPU, ni modelos. (Ver `planes/plan_parametros.md`.)
 
 ## Para correr el detector completo (analyze_audio / regenerar demo_scores)
 Esto SÍ usa cosas pesadas. Necesitas:

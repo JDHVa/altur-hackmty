@@ -1,6 +1,6 @@
 # EQUIPO — Asignación de tareas por persona
 
-> Complementa [`PLAN.md`](PLAN.md). Tres caminos **independientes** unidos por contratos de
+> Complementa [`PLAN.md`](planes/PLAN.md). Tres caminos **independientes** unidos por contratos de
 > interfaz. Cada quien programa contra un *stub* de los demás y no se bloquea.
 
 ## Contratos de interfaz (acordar en la HORA 1, todos juntos)

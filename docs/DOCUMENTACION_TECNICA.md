@@ -1,7 +1,7 @@
 # Centinel Altur — Documentación técnica de tecnologías
 
 > HackMTY 2026 · Altur Challenge. Detección de voz sintética en llamadas bancarias (es-MX).
-> Este documento describe **qué tecnologías usamos, para qué y cómo se conectan**. Para el roadmap ver `PLAN.md`; para la división de trabajo `EQUIPO.md`.
+> Este documento describe **qué tecnologías usamos, para qué y cómo se conectan**. Para el roadmap ver `planes/PLAN.md`; para la división de trabajo `EQUIPO.md`.
 
 ---
 
@@ -79,7 +79,7 @@ Por qué tabular primero: es robusto a **hablantes no vistos** (no codifica iden
 Detalles de inferencia:
 - Todos los scorers promedian **ventanas de 6 s (máx. 8)** para ser robustos a la duración.
 - `src/features/wavlm_embed.py`: una sola pasada de WavLM compartida entre `audio_score` y `flow_llr`.
-- Fusión de audio (`api/inference.py::combine_audio`): promedio ponderado de las señales disponibles. Config ganadora del barrido (`plan_parametros.md`): **wavlm 0.40 · xlsr 0.50 · flow 0.10 · prosody 0** → ACC 0.917, FN 2, FP 0 en 24 demos.
+- Fusión de audio (`api/inference.py::combine_audio`): promedio ponderado de las señales disponibles. Config ganadora del barrido (`planes/plan_parametros.md`): **wavlm 0.40 · xlsr 0.50 · flow 0.10 · prosody 0** → ACC 0.917, FN 2, FP 0 en 24 demos.
 - Entrenamiento pesado en **Modal** (`scripts/modal_app.py`, GPU A10G, volúmenes `altur-data`/`altur-models`) o en las RTX 4050/5050 del equipo.
 
 Descartado: modelos HF zero-shot de deepfake-audio (AUC 0.41 en val, domain gap a 8 kHz/español); augmentation multi-códec y "más humanos" (no mejoran).
